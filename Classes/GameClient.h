@@ -175,7 +175,7 @@ private:
 			auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
 			actionVector.pushBack(moveAction);
 			//绘制从起点到下一个地图单元的线段
-			//m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+			m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
 			//将当前坐标保存为下一次绘制的起点
 			fromX = realX;
 			fromY = realY;
