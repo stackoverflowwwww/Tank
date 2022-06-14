@@ -1,9 +1,9 @@
 #include "Tank.h"
 
-Tank* Tank::create(int ID, float x, float y, int dir, int kind)
+Tank* Tank::create(int ID, float x, float y, int dir, int _kind)
 {
 	Tank* pRet = new(std::nothrow) Tank();
-	if (pRet && pRet->init(ID, x, y, dir, kind))
+	if (pRet && pRet->init(ID, x, y, dir, _kind))
 	{
 		pRet->autorelease();
 		return pRet;
@@ -31,6 +31,7 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	m_moveDown = FALSE;
 	m_moveRight = FALSE;
 	m_moveLeft = FALSE;
+	tank_kind = kind;
 
 	m_isMoving = false;
 

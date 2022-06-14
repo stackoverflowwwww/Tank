@@ -24,7 +24,7 @@ using namespace cocos2d::ui;
 class Tank : public BaseObject
 {
 public:
-	static Tank* create(int ID, float x, float y, int dir, int kind);
+	static Tank* create(int ID, float x, float y, int dir, int _kind);
 	void MoveUP();
 	void MoveDown();
 	void MoveLeft();
@@ -36,6 +36,7 @@ public:
 	bool isMoving() { return m_isMoving; };
 	Rect getRect() { return m_rect; };
 	Vector<Bullet*> getBulletList() { return m_bulletList; };
+	int tank_kind;
 private:
 	virtual bool init(int ID, float x, float y, int dir, int kind);
 	void Draw();
@@ -62,6 +63,7 @@ public:
 	int   m_textureX;           
 	int   m_textureY;
 	int length = 16;
+	int tag_id;
 };
 
 #endif

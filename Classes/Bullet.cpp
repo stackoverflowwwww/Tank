@@ -13,7 +13,11 @@ Bullet::~Bullet()
 Bullet* Bullet::create(Vec2 position, float speed, int dir)
 {
 	Bullet* pRet = new(std::nothrow) Bullet();
-	if (pRet && pRet->init(position, speed, dir))
+	float p=rand()*1.0 / RAND_MAX;
+	if (p >= 0.5) {
+		pRet->type = PENETRATE;
+	}
+	if (pRet && pRet->init(position, speed, dir,pRet->type))
 	{
 		pRet->autorelease();
 		return pRet;
@@ -25,27 +29,48 @@ Bullet* Bullet::create(Vec2 position, float speed, int dir)
 	}
 }
 
-bool Bullet::init(Vec2 position, float speed, int dir)
+bool Bullet::init(Vec2 position, float speed, int dir,BulletType type)
 {
 	if (!BaseObject::init())
 	{
 		return false;
 	}
-	m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/bullet.png");
-	switch (dir)
-	{
-	case BULLET_UP:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(  0, 0, 8, 8));
-		break;
-	case BULLET_DOWN:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(8*2, 0, 8, 8));
-		break;
-	case BULLET_LEFT:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(8*3, 0, 8, 8));
-		break;
-	case BULLET_RIGHT:
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(  8, 0, 8, 8));
-		break;
+	if (type == NORMAL) {
+		m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/bullet.png");
+		switch (dir)
+		{
+		case BULLET_UP:
+			m_sprite = Sprite::createWithTexture(m_texture, Rect(0, 0, 8, 8));
+			break;
+		case BULLET_DOWN:
+			m_sprite = Sprite::createWithTexture(m_texture, Rect(8 * 2, 0, 8, 8));
+			break;
+		case BULLET_LEFT:
+			m_sprite = Sprite::createWithTexture(m_texture, Rect(8 * 3, 0, 8, 8));
+			break;
+		case BULLET_RIGHT:
+			m_sprite = Sprite::createWithTexture(m_texture, Rect(8, 0, 8, 8));
+			break;
+		}
+	}
+	else if(type==PENETRATE){
+		m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/bullet2.png");
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(0, 0, 8, 8));
+		switch (dir)
+		{
+		case BULLET_UP:
+			m_sprite->setRotation(0);
+			break;
+		case BULLET_DOWN:
+			m_sprite->setRotation(180);
+			break;
+		case BULLET_LEFT:
+			m_sprite->setRotation(-90);
+			break;
+		case BULLET_RIGHT:
+			m_sprite->setRotation(90);
+			break;
+		}
 	}
 	m_sprite->setPosition(Vec2::ZERO);
 	this->addChild(m_sprite);

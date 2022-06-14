@@ -8,7 +8,11 @@
 #define BULLET_DOWN    2      // BULLET向下状态
 #define BULLET_LEFT    3      // BULLET向左状态
 #define BULLET_RIGHT   4      // BULLET向右状态
-
+enum BulletType
+{
+	NORMAL,
+	PENETRATE,
+};
 class Bullet : public BaseObject
 {
 public:
@@ -20,9 +24,10 @@ public:
 	void Blast();    
 
 	Rect getRect() { return m_rect; };
-
+	BulletType type = NORMAL;
+	int hit_count = 0;
 private:
-	virtual bool init(Vec2 position, float speed, int dir);
+	virtual bool init(Vec2 position, float speed, int dir,BulletType type=NORMAL);
 	void update(float delta);
 	void deleteObj(Sprite* obj);
 

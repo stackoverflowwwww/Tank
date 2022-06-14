@@ -21,11 +21,37 @@ bool GameClient::init()
 	createBackGround();
 
 	// 玩家
-	m_tank = Tank::create(110, WINDOWWIDTH/2, 100, 1, 2);
+	m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH/2, 100, 1, 2);
 	m_tankList.pushBack(m_tank);
 
+	//敌人
+	//srand(500);
+	for (int i = 0; i < max_num; i++) {
+		int x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
+		int tile_x = x / tileSize.width;
+		int tile_y = (visibleSize.height - y) / tileSize.height;
+		int id = map_layer->getTileGIDAt(Vec2(tile_x,tile_y));
+		while (id!=0)
+		{
+			x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
+			tile_x = x / tileSize.width;
+			tile_y = (visibleSize.height - y) / tileSize.height;
+			id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
+		}
+		Tank *tmp = Tank::create(220 + i, x, y, 2, 1);
+		m_tankList.pushBack(tmp);
+		this->addChild(tmp, 1, i+2);
+		tmp->tag_id = i+2;
+		m_drawList.pushBack(tmp);
+	}
+	//添加绘图节点
+	m_draw = DrawNode::create();
+	this->addChild(m_draw, 2);
+	initMap();
+	this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
 	// 碰撞检测
 	this->scheduleUpdate();
+	
 
 	// 键盘事件
 	auto key_listener = EventListenerKeyboard::create();
@@ -33,7 +59,12 @@ bool GameClient::init()
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
-	this->addChild(m_tank);
+	auto mouse_listener = EventListenerMouse::create();
+	mouse_listener->onMouseUp=CC_CALLBACK_1(GameClient::onMouseUp, this);
+	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(mouse_listener, this);
+
+	this->addChild(m_tank,1,1);
+	m_tank->tag_id = 1;
 	m_drawList.pushBack(m_tank); // 联网后再加入，因为ID由服务器分配
 
 	m_shouldFireList.clear(); 
@@ -187,9 +218,11 @@ void GameClient::update(float delta)
 				{
 					if (bullet->getRect().intersectsRect(tank_another->getRect()))
 					{
-						// 子弹消除
-						m_deleteBulletList.pushBack(bullet);
-
+						bullet->hit_count += 1;
+						if ((bullet->type == PENETRATE && bullet->hit_count >= 2) ||(bullet->type == NORMAL && bullet->hit_count >= 1) ) {
+							// 子弹消除
+							m_deleteBulletList.pushBack(bullet);
+						}
 						// 坦克消除
 						m_deleteTankList.pushBack(tank_another);
 					}
@@ -238,11 +271,21 @@ void GameClient::update(float delta)
 			if (type != NONE) {
 				if (type == BRICK_ID || type == BLOCK_ID) {
 					// 子弹消除
-					m_deleteBulletList.pushBack(bullet);
+					if (type == BRICK_ID) {
+						bullet->hit_count += 1;
+					}
+					else {
+						bullet->hit_count += 2;
+					}
+					if ((bullet->type == PENETRATE && bullet->hit_count >= 2) || (bullet->type == NORMAL && bullet->hit_count >= 1)) {
+						// 子弹消除
+						m_deleteBulletList.pushBack(bullet);
+					}					
 					if (type == BRICK_ID) {
 						auto tile = map_layer->getTileAt(Vec2(k1, k2));
 						tile->setVisible(false);
 						tile->removeFromParent();
+						m_map[k1][k2].status = ACCESS;
 					}
 				}
 			}
@@ -333,6 +376,11 @@ void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 			m_tank->MoveRight();
 		}
 		break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_F:
+		if (set_convey) {
+			can_convey = 1;
+		}
+		break;
 	}
 }
 
@@ -365,7 +413,22 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 			m_tank->Fire();
 		}
 		break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_F:
+		if (can_convey) {
+			can_convey = 0;
+			set_convey = 0;
+			Vec2 p;
+			p.x = (int)(convey_p.x / tileSize.width);
+			p.y = (int)((visibleSize.height - convey_p.y) / tileSize.height);
+			int id = map_layer->getTileGIDAt(p);
+			if (id == OCEAN_ID || id == BRICK_ID || id == BLOCK_ID) {
+				return;
+			}
+			m_tank->setPosition(convey_p);
+		}
+		break;
 	}
+
 }
 
 //////////////////////////////////////////////////////////////////////////
