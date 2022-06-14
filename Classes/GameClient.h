@@ -110,7 +110,7 @@ private:
 			}
 		}
 	}
-	int aStar(mapNode** map, mapNode* origin, mapNode* destination,int tag_id)
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination,Tank *nowTank,float dt)
 	{
 		if (origin == destination) {
 			return 0;
@@ -136,15 +136,14 @@ private:
 			{
 				mapNode* tempNode = open->openNode;
 				//调用moveOnPath（）函数控制精灵在路径上移动
-				moveOnPath(tempNode,tag_id);
+				moveOnPath(tempNode,nowTank,dt);
 				break;
 			}
 		}
 		return 0;
 	}
-	void moveOnPath(mapNode* tempNode,int tag_id)
+	void moveOnPath(mapNode* tempNode,Tank *nowTank,float dt)
 	{
-		static int a = 0;
 		//声明存储路径坐标的结构体
 		struct pathCoordinate { int x; int y; };
 		//分配路径坐标结构体数组
@@ -158,35 +157,30 @@ private:
 			loopNum++;
 			tempNode = tempNode->parent;
 		}
-		//将笑脸精灵的坐标存为绘制线段起点
-		auto smile = this->getChildByTag(tag_id);
-		smile->stopAllActions();
-		int fromX = smile->getPositionX();
-		int fromY = smile->getPositionY();
-		//声明动作向量存储动作序列
-		Vector<FiniteTimeAction*> actionVector;
-		//从结构体数组尾部开始扫描
-		for (int j = loopNum - 2; j >= 0; j--)
-		{
-			//将地图数组坐标转化为屏幕实际坐标
-			int realX = (path[j].x + 0.5)*UNIT;
-			int realY = visibleSize.height - (path[j].y + 0.5)*UNIT;
-			//创建移动动作并存入动作向量
-			auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
-			actionVector.pushBack(moveAction);
-			//绘制从起点到下一个地图单元的线段
-			//m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
-			//将当前坐标保存为下一次绘制的起点
-			fromX = realX;
-			fromY = realY;
+		if (loopNum>=2) {
+			int j = loopNum - 1;
+			int fromX = path[j].x;
+			int fromY = path[j].y;
+			j--;
+			int realX = path[j].x;
+			int realY = path[j].y;
+			if (realX - fromX == 0) {
+				if (realY - fromY>0) {
+					nowTank->MoveUP();
+				}
+				else if(realY - fromY < 0){
+					nowTank->MoveDown();
+				}
+			}
+			else if (realY-fromY==0) {
+				if (realX - fromX > 0) {
+					nowTank->MoveRight();
+				}
+				else if (realX - fromX < 0) {
+					nowTank->MoveLeft();
+				}
+			}
 		}
-		//创建动作序列
-		auto actionSequence = Sequence::create(actionVector);
-		//笑脸精灵执行移动动作序列
-		if (a < 1) {
-			smile->runAction(actionSequence);
-		}
-		a++;
 	}
 	void updatePath(float dt) {
 		auto nowTank = m_tank;
@@ -204,7 +198,7 @@ private:
 				m_map[x][y].status = ORIGIN;
 				m_map[x][y].parent = nullptr;
 				auto m_ori = &m_map[x][y];
-				aStar(m_map, m_ori, m_dest,nowTank->tag_id);
+				aStar(m_map, m_ori, m_dest,nowTank,dt);
 				m_map[x][y].status = tmp;
 			}
 		}

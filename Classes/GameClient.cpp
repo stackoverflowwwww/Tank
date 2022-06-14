@@ -48,7 +48,7 @@ bool GameClient::init()
 	m_draw = DrawNode::create();
 	this->addChild(m_draw, 2);
 	initMap();
-	this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
+	//this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
 	// 碰撞检测
 	this->scheduleUpdate();
 	
@@ -81,6 +81,7 @@ Scene* GameClient::createScene()
 
 void GameClient::update(float delta)
 {
+	updatePath(delta);
 	// 收到传来的开火消息的坦克执行Fire
 	if (m_shouldFireList.size() > 0)
 	{
