@@ -7,9 +7,6 @@
 #include "aStar.h"
 #include "ui/CocosGUI.h"
 #include "SimpleAudioEngine.h"
-#include <iostream>
-#include <fstream>
-using namespace std;
 using namespace CocosDenshion;
 
 #define OCEAN_ID 7
@@ -75,7 +72,6 @@ private:
 		set_convey = 1;
 	}
 
-	int enermy_num = 20;
 	int max_num = 1;
 
 	mapNode **m_map;
@@ -113,7 +109,7 @@ private:
 			}
 		}
 	}
-	int aStar(mapNode** map, mapNode* origin, mapNode* destination,Tank *nowTank,float dt)
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination,int tag_id)
 	{
 		if (origin == destination) {
 			return 0;
@@ -139,13 +135,13 @@ private:
 			{
 				mapNode* tempNode = open->openNode;
 				//调用moveOnPath（）函数控制精灵在路径上移动
-				moveOnPath(tempNode,nowTank,dt);
+				moveOnPath(tempNode,tag_id);
 				break;
 			}
 		}
 		return 0;
 	}
-	void moveOnPath(mapNode* tempNode,Tank *nowTank,float dt)
+	void moveOnPath(mapNode* tempNode,int tag_id)
 	{
 		//声明存储路径坐标的结构体
 		struct pathCoordinate { int x; int y; };
@@ -160,46 +156,34 @@ private:
 			loopNum++;
 			tempNode = tempNode->parent;
 		}
-		int fromX = nowTank->getPositionX();
-		int fromY = nowTank->getPositionY();
-		static int a=0;
-		//if (a == 0) {
-			for (int j = loopNum - 2; j >= 0; j--)
-			{
-				//将地图数组坐标转化为屏幕实际坐标
-				int realX = (path[j].x + 0.5)*UNIT;
-				int realY = visibleSize.height - (path[j].y + 0.5)*UNIT;
-				m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
-				//将当前坐标保存为下一次绘制的起点
-				fromX = realX;
-				fromY = realY;
-			}
-		//}
-		a++;
-		//if (loopNum>=2) {
-		//	int j = loopNum - 1;
-		//	int fromX = path[j].x;
-		//	int fromY = path[j].y;
-		//	j--;
-		//	int realX = path[j].x;
-		//	int realY = path[j].y;
-		//	if (realX - fromX == 0) {
-		//		if (realY - fromY>0) {
-		//			nowTank->MoveDown();
-		//		}
-		//		else if(realY - fromY < 0){
-		//			nowTank->MoveUP();
-		//		}
-		//	}
-		//	else if (realY-fromY==0) {
-		//		if (realX - fromX > 0) {
-		//			nowTank->MoveRight();
-		//		}
-		//		else if (realX - fromX < 0) {
-		//			nowTank->MoveLeft();
-		//		}
-		//	}
-		//}
+		//将笑脸精灵的坐标存为绘制线段起点
+		auto smile = this->getChildByTag(tag_id);
+		smile->stopAllActions();
+		int fromX = smile->getPositionX();
+		int fromY = smile->getPositionY();
+		//声明动作向量存储动作序列
+		Vector<FiniteTimeAction*> actionVector;
+		//从结构体数组尾部开始扫描
+		for (int j = loopNum - 2; j >= 0; j--)
+		{
+			//将地图数组坐标转化为屏幕实际坐标
+			int realX = (path[j].x + 0.5)*UNIT;
+			int realY = visibleSize.height - (path[j].y + 0.5)*UNIT;
+			//创建移动动作并存入动作向量
+			auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
+			actionVector.pushBack(moveAction);
+			//绘制从起点到下一个地图单元的线段
+			m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+			//将当前坐标保存为下一次绘制的起点
+			fromX = realX;
+			fromY = realY;
+		}
+		//创建动作序列
+		auto actionSequence = Sequence::create(actionVector);
+		//笑脸精灵执行移动动作序列
+
+		smile->runAction(actionSequence);
+
 	}
 	void updatePath(float dt) {
 		auto nowTank = m_tank;
@@ -217,7 +201,7 @@ private:
 				m_map[x][y].status = ORIGIN;
 				m_map[x][y].parent = nullptr;
 				auto m_ori = &m_map[x][y];
-				aStar(m_map, m_ori, m_dest,nowTank,dt);
+				aStar(m_map, m_ori, m_dest,nowTank->tag_id);
 				m_map[x][y].status = tmp;
 			}
 		}
