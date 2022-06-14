@@ -39,6 +39,7 @@ bool GameClient::init()
 			id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
 		}
 		Tank *tmp = Tank::create(220 + i, x, y, 2, 1);
+		tmp->DontMove();
 		m_tankList.pushBack(tmp);
 		this->addChild(tmp, 1, i+2);
 		tmp->tag_id = i+2;
@@ -47,6 +48,10 @@ bool GameClient::init()
 	//添加绘图节点
 	m_draw = DrawNode::create();
 	this->addChild(m_draw, 2);
+	//Color4F c(1, 1, 1, 1);
+	//m_draw->drawCircle(Vec2(100, 300), 10, 360, 1, true,c);
+	//Color4F c2(1, 0, 0, 1);
+	//m_draw->drawCircle(Vec2(100, 200), 10, 360, 1, true, c2);
 	initMap();
 	//this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
 	// 碰撞检测
@@ -153,7 +158,7 @@ void GameClient::update(float delta)
 				}
 			}
 		}
-		if (type != NONE) {
+		if (type != NONE && nowTank->tank_kind!=1) {
 			if (type == BRICK_ID || type == BLOCK_ID) {
 				if (nowTank->getDirection() == TANK_UP) {
 					// 方法1：履带持续转动

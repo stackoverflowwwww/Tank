@@ -91,7 +91,6 @@ void Tank::MoveUP()
 	m_moveDown = false;
 	m_moveLeft = false;
 	m_moveRight = false;
-
 	setDirection(TANK_UP);
 }
 
@@ -212,6 +211,9 @@ void Tank::update(float t)
 	}
 	if (m_moveUp)
 	{
+		if (tank_kind == 1) {
+			tank_kind = 1;
+		}
 		m_textureY = 1*14;
 		if ((this->getPositionY() <= WINDOWHEIGHT - 14) && (this->getHindered() != TANK_UP))
 		{

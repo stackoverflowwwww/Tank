@@ -111,11 +111,17 @@ bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode
 	const int neighborDirection[8][2] = { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 }, { 1, 0 }, { 1, 1 } };
 	for (int i = 0; i<8; i++)
 	{
+		if (i == 0 || i == 2 || i == 5 || i == 7) {
+			continue;
+		}
 		//得到相邻节点的x，y坐标
 		int neighborX = node->xCoordinate + neighborDirection[i][0];
 		int neighborY = node->yCoordinate + neighborDirection[i][1];
 		bool flag = (map[neighborX][neighborY].status != NOT_ACCESS);
 		for (int j = 0; j < 8; j++) {
+			if (j == 0 || j == 2 || j == 5 || j == 7) {
+				continue;
+			}
 			//得到相邻节点的x，y坐标
 			int neighborX2 = neighborX + neighborDirection[j][0];
 			int neighborY2 = neighborY + neighborDirection[j][1];

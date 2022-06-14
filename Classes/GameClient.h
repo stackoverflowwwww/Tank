@@ -7,6 +7,9 @@
 #include "aStar.h"
 #include "ui/CocosGUI.h"
 #include "SimpleAudioEngine.h"
+#include <iostream>
+#include <fstream>
+using namespace std;
 using namespace CocosDenshion;
 
 #define OCEAN_ID 7
@@ -157,30 +160,46 @@ private:
 			loopNum++;
 			tempNode = tempNode->parent;
 		}
-		if (loopNum>=2) {
-			int j = loopNum - 1;
-			int fromX = path[j].x;
-			int fromY = path[j].y;
-			j--;
-			int realX = path[j].x;
-			int realY = path[j].y;
-			if (realX - fromX == 0) {
-				if (realY - fromY>0) {
-					nowTank->MoveUP();
-				}
-				else if(realY - fromY < 0){
-					nowTank->MoveDown();
-				}
+		int fromX = nowTank->getPositionX();
+		int fromY = nowTank->getPositionY();
+		static int a=0;
+		//if (a == 0) {
+			for (int j = loopNum - 2; j >= 0; j--)
+			{
+				//将地图数组坐标转化为屏幕实际坐标
+				int realX = (path[j].x + 0.5)*UNIT;
+				int realY = visibleSize.height - (path[j].y + 0.5)*UNIT;
+				m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+				//将当前坐标保存为下一次绘制的起点
+				fromX = realX;
+				fromY = realY;
 			}
-			else if (realY-fromY==0) {
-				if (realX - fromX > 0) {
-					nowTank->MoveRight();
-				}
-				else if (realX - fromX < 0) {
-					nowTank->MoveLeft();
-				}
-			}
-		}
+		//}
+		a++;
+		//if (loopNum>=2) {
+		//	int j = loopNum - 1;
+		//	int fromX = path[j].x;
+		//	int fromY = path[j].y;
+		//	j--;
+		//	int realX = path[j].x;
+		//	int realY = path[j].y;
+		//	if (realX - fromX == 0) {
+		//		if (realY - fromY>0) {
+		//			nowTank->MoveDown();
+		//		}
+		//		else if(realY - fromY < 0){
+		//			nowTank->MoveUP();
+		//		}
+		//	}
+		//	else if (realY-fromY==0) {
+		//		if (realX - fromX > 0) {
+		//			nowTank->MoveRight();
+		//		}
+		//		else if (realX - fromX < 0) {
+		//			nowTank->MoveLeft();
+		//		}
+		//	}
+		//}
 	}
 	void updatePath(float dt) {
 		auto nowTank = m_tank;

@@ -29,6 +29,12 @@ public:
 	void MoveDown();
 	void MoveLeft();
 	void MoveRight();
+	void DontMove() {
+		m_moveUp = 0;
+		m_moveDown = 0;
+		m_moveLeft = 0;
+		m_moveRight = 0;
+	}
 	void Fire();
 	void Stay(int dir);
 	void Blast();     // 爆炸时已自动设置life为0
