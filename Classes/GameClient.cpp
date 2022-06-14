@@ -25,7 +25,6 @@ bool GameClient::init()
 	m_tankList.pushBack(m_tank);
 
 	//µ–»À
-	//srand(500);
 	for (int i = 0; i < max_num; i++) {
 		int x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
 		int tile_x = x / tileSize.width;

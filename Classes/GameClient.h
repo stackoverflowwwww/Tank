@@ -72,7 +72,6 @@ private:
 		set_convey = 1;
 	}
 
-	int enermy_num = 20;
 	int max_num = 1;
 
 	mapNode **m_map;
@@ -144,7 +143,6 @@ private:
 	}
 	void moveOnPath(mapNode* tempNode,int tag_id)
 	{
-		static int a = 0;
 		//声明存储路径坐标的结构体
 		struct pathCoordinate { int x; int y; };
 		//分配路径坐标结构体数组
@@ -183,10 +181,9 @@ private:
 		//创建动作序列
 		auto actionSequence = Sequence::create(actionVector);
 		//笑脸精灵执行移动动作序列
-		if (a < 1) {
-			smile->runAction(actionSequence);
-		}
-		a++;
+
+		smile->runAction(actionSequence);
+
 	}
 	void updatePath(float dt) {
 		auto nowTank = m_tank;
