@@ -17,14 +17,14 @@ bool Brick::init(Vec2 position)
 		return false;
 	}
 
-	m_sprite = Sprite::create("Chapter12/tank/tile.png",Rect(0, 0, 16, 16));
-	
+	m_sprite = Sprite::create("Chapter12/tank/tile.png", Rect(0, 0, 16, 16));
+
 	this->addChild(m_sprite);
 	m_sprite->setPosition(Vec2::ZERO);
 
 	this->setPosition(position);
 	m_rect = Rect(this->getPositionX() - 8, this->getPositionY() - 8, 16, 16);
-	
+
 	return true;
 }
 
@@ -35,7 +35,8 @@ Brick* Brick::create(Vec2 position)
 	{
 		pRet->autorelease();
 		return pRet;
-	} else
+	}
+	else
 	{
 		delete pRet;
 		pRet = NULL;
@@ -45,7 +46,7 @@ Brick* Brick::create(Vec2 position)
 
 void Brick::Blast()
 {
-	this->setVisible(false);   // ×©¿éÏûÊ§
-	this->removeFromParent();  
+	this->setVisible(false);   // ç –å—æ¶ˆå¤±
+	this->removeFromParent();
 }
 

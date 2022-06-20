@@ -10,47 +10,47 @@ using namespace std;
 #define MAP_HEIGHT 40
 #define UNIT 16 
 
-//¶¨Òå½ÚµãµÄ¸÷ÖÖ×´Ì¬£º
-#define ACCESS 1		   //·½¸ñ¿Éµ½´ï¡¢²»¿Éµ½´ï
+//å®šä¹‰èŠ‚ç‚¹çš„å„ç§çŠ¶æ€ï¼š
+#define ACCESS 1		   //æ–¹æ ¼å¯åˆ°è¾¾ã€ä¸å¯åˆ°è¾¾
 #define NOT_ACCESS 2    
-#define ORIGIN 3         //Â·¾¶Æğµã¡¢ÖÕµã
+#define ORIGIN 3         //è·¯å¾„èµ·ç‚¹ã€ç»ˆç‚¹
 #define DESTINATION 4	   
-#define IN_OPENLIST 5    //½ÚµãÔÚOPEN±í¡¢CLOSED±íÖĞ
+#define IN_OPENLIST 5    //èŠ‚ç‚¹åœ¨OPENè¡¨ã€CLOSEDè¡¨ä¸­
 #define IN_CLOSEDLIST 6  
 
-//¶¨Òå½Úµã½á¹¹£º
+//å®šä¹‰èŠ‚ç‚¹ç»“æ„ï¼š
 struct mapNode
 {
-	int status;           //½ÚµãµÄ×´Ì¬±êÖ¾
-	int xCoordinate;	   //½ÚµãµÄºá¡¢×İ×ø±ê
+	int status;           //èŠ‚ç‚¹çš„çŠ¶æ€æ ‡å¿—
+	int xCoordinate;	   //èŠ‚ç‚¹çš„æ¨ªã€çºµåæ ‡
 	int yCoordinate;
-	int fValue;		   //½ÚµãµÄfÖµ£¬gÖµ£¬hÖµ
+	int fValue;		   //èŠ‚ç‚¹çš„få€¼ï¼Œgå€¼ï¼Œhå€¼
 	int gValue;
 	int hValue;
-	mapNode* parent;    //½ÚµãµÄ¸¸½ÚµãÖ¸Õë
+	mapNode* parent;    //èŠ‚ç‚¹çš„çˆ¶èŠ‚ç‚¹æŒ‡é’ˆ
 };
 
-//¶¨ÒåOPEN±í½á¹¹£º
+//å®šä¹‰OPENè¡¨ç»“æ„ï¼š
 struct openList
 {
-	mapNode *openNode;
+	mapNode* openNode;
 	openList* next;
 };
 
-//¶¨ÒåCLOSED±í½á¹¹£º
+//å®šä¹‰CLOSEDè¡¨ç»“æ„ï¼š
 struct closedList
 {
-	mapNode *closedNode;
+	mapNode* closedNode;
 	closedList* next;
 };
 
-void insertNodeToClosedList(closedList* close, openList* &open);
+void insertNodeToClosedList(closedList* close, openList*& open);
 
 void calculateValues(mapNode** map, int x, int y, int i, mapNode* node, mapNode* destination);
 
 void insertToOpenList(openList* open, mapNode* node);
 
-bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode * node);
+bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode* node);
 
 bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode* destination);
 

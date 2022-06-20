@@ -24,8 +24,8 @@ public:
 	Rect getRect() { return m_rect; };
 
 private:
-	Sprite* m_sprite;  // ×©¿é¾«Áé
-	Rect m_rect;       // °üÎ§¿ò
+	Sprite* m_sprite;  // ç –å—ç²¾çµ
+	Rect m_rect;       // åŒ…å›´æ¡†
 	//int type;
 };
 

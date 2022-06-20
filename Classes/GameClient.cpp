@@ -1,14 +1,10 @@
 #include "GameClient.h"
 
 GameClient::GameClient()
-{
-
-}
+{}
 
 GameClient::~GameClient()
-{
-
-}
+{}
 
 bool GameClient::init()
 {
@@ -17,61 +13,72 @@ bool GameClient::init()
 		return false;
 	}
 	visibleSize = Director::getInstance()->getVisibleSize();
-	// ±³¾°
+	// èƒŒæ™¯
 	createBackGround();
+	initMap();
 
-	// Íæ¼Ò
-	m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH/2, 100, 1, 2);
-	m_tankList.pushBack(m_tank);
+	SimpleAudioEngine::getInstance()->playBackgroundMusic("sound/start.mp3", false);
 
-	//µĞÈË
-	for (int i = 0; i < max_num; i++) {
-		int x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
-		int tile_x = x / tileSize.width;
-		int tile_y = (visibleSize.height - y) / tileSize.height;
-		int id = map_layer->getTileGIDAt(Vec2(tile_x,tile_y));
-		while (id!=0)
-		{
-			x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
-			tile_x = x / tileSize.width;
-			tile_y = (visibleSize.height - y) / tileSize.height;
-			id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
-		}
-		Tank *tmp = Tank::create(220 + i, x, y, 2, 1);
-		tmp->DontMove();
-		m_tankList.pushBack(tmp);
-		this->addChild(tmp, 1, i+2);
-		tmp->tag_id = i+2;
-		m_drawList.pushBack(tmp);
+	//data.score = 0;
+
+	/*for (int i = 0; i < attend_enemy; i++) {
+		enemy_point[i] = Vec2((int)(WINDOWWIDTH*i/attend_enemy+5), (int)WINDOWHEIGHT-10);
+	}*/
+
+	//æ•Œäºº
+	for (int i = 0; i < attend_enemy; i++) {
+		addEnemy(i);
 	}
-	//Ìí¼Ó»æÍ¼½Úµã
+	this->schedule(schedule_selector(GameClient::addFire), 1.0f);//è®¾ç½®æ•Œäººå¦å…‹æ¯éš”0.5ç§’å°„å‡»
+
+	//æ·»åŠ ç»˜å›¾èŠ‚ç‚¹
 	m_draw = DrawNode::create();
 	this->addChild(m_draw, 2);
 	//Color4F c(1, 1, 1, 1);
 	//m_draw->drawCircle(Vec2(100, 300), 10, 360, 1, true,c);
 	//Color4F c2(1, 0, 0, 1);
 	//m_draw->drawCircle(Vec2(100, 200), 10, 360, 1, true, c2);
-	initMap();
-	//this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
-	// Åö×²¼ì²â
-	this->scheduleUpdate();
-	
 
-	// ¼üÅÌÊÂ¼ş
+	//this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
+	// ç¢°æ’æ£€æµ‹
+
+	//æ·»åŠ å…³å¡æç¤º
+	Label* label = Label::createWithBMFont("fonts/futura-48.fnt", "The First Pass");
+	//Label* label = Label::createWithBMFont("fonts/futura-48.fnt", myWrap("Enemy:" + std::to_string(all_enemy) + "MyLife:" + std::to_string(max_num) + "Score:" + std::to_string(player.score),10));
+
+	label->setColor(cocos2d::Color3B(255, 255, 255));
+	label->setPosition(Vec2(visibleSize.width / 2 - label->getWidth(), visibleSize.height / 2));
+	label->runAction(CCSequence::create(CCDelayTime::create(2), CCFadeOut::create(1), CCRemoveSelf::create(true), NULL));//2ç§’åæ¶ˆå¤±
+	this->addChild(label, 2);
+
+	// é”®ç›˜äº‹ä»¶
 	auto key_listener = EventListenerKeyboard::create();
 	key_listener->onKeyPressed = CC_CALLBACK_2(GameClient::onKeyPressed, this);
 	key_listener->onKeyReleased = CC_CALLBACK_2(GameClient::onKeyReleased, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(key_listener, this);
 
 	auto mouse_listener = EventListenerMouse::create();
-	mouse_listener->onMouseUp=CC_CALLBACK_1(GameClient::onMouseUp, this);
+	mouse_listener->onMouseUp = CC_CALLBACK_1(GameClient::onMouseUp, this);
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(mouse_listener, this);
 
-	this->addChild(m_tank,1,1);
-	m_tank->tag_id = 1;
-	m_drawList.pushBack(m_tank); // ÁªÍøºóÔÙ¼ÓÈë£¬ÒòÎªIDÓÉ·şÎñÆ÷·ÖÅä
+	// ç©å®¶
+	m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH / 2, 100, 1, 2);
 
-	m_shouldFireList.clear(); 
+	this->addChild(m_tank, 1, 1);
+	m_tank->tag_id = MY_TANK_ID;
+	m_tankList.pushBack(m_tank);
+	//updatePath(1.0f);
+
+	m_shouldFireList.clear();
+
+
+	string theinfo = "Enemy:" + std::to_string(all_enemy) + "     MyLife:" + std::to_string(max_num) + "     Score:" + std::to_string(player.score);
+	scoreboard = Label::createWithBMFont("fonts/futura-48.fnt", theinfo);
+	scoreboard->setScale(0.6);
+	scoreboard->setPosition(Vec2(visibleSize.width / 2, visibleSize.height - scoreboard->getHeight() - 20));
+	this->addChild(scoreboard, 1);
+
+	this->scheduleUpdate();
 	return true;
 }
 
@@ -85,41 +92,19 @@ Scene* GameClient::createScene()
 
 void GameClient::update(float delta)
 {
-	updatePath(delta);
-	// ÊÕµ½´«À´µÄ¿ª»ğÏûÏ¢µÄÌ¹¿ËÖ´ĞĞFire
-	if (m_shouldFireList.size() > 0)
-	{
-		auto tank = m_shouldFireList.at(0);
+	//updatePath(delta);
+	// æ”¶åˆ°ä¼ æ¥çš„å¼€ç«æ¶ˆæ¯çš„å¦å…‹æ‰§è¡ŒFire
+	string theinfo = "Enemy:" + std::to_string(all_enemy) + "     MyLife:" + std::to_string(max_num) + "     Score:" + std::to_string(player.score);
+	scoreboard->setString(theinfo);
+
+	for (int i = 0; i < m_shouldFireList.size(); i++) {
+		auto tank = m_shouldFireList.at(i);
 		tank->Fire();
-		m_shouldFireList.clear();
 	}
+	m_shouldFireList.clear();
 
-	// Î¬»¤Ì¹¿ËÁĞ±í
-	for (int i = 0; i < m_tankList.size(); i++)
-	{
-		auto nowTank = m_tankList.at(i);
-		if (nowTank->getLife() <= 0)
-		{
-			m_tankList.eraseObject(nowTank);
-		}
-		bool notDraw = true;
-		for (int j = 0; j < m_drawList.size(); j++)
-		{
-			auto drawTank = m_drawList.at(j);
-			if (drawTank->getID() == nowTank->getID())
-			{
-				notDraw = false;
-			}
-		}
 
-		// »æÖÆÉĞÎ´»æÖÆµÄÌ¹¿Ë-Õë¶ÔºóÁ¬½øÀ´µÄ¿Í»§¶Ë
-		if (notDraw)
-		{
-			this->addChild(nowTank);
-			m_drawList.pushBack(nowTank);
-		}
-	}
-	// Ì¹¿ËÓë Ì¹¿Ë£¬ÎïÆ·µÄÅö×²¼ì²â
+	// å¦å…‹ä¸ å¦å…‹ï¼Œç‰©å“çš„ç¢°æ’æ£€æµ‹
 	for (int i = 0; i < m_tankList.size(); i++)
 	{
 		auto nowTank = m_tankList.at(i);
@@ -157,41 +142,55 @@ void GameClient::update(float delta)
 				}
 			}
 		}
-		if (type != NONE && nowTank->tank_kind!=1) {
+		if (type != NONE && nowTank->tank_kind != 1) {
 			if (type == BRICK_ID || type == BLOCK_ID) {
 				if (nowTank->getDirection() == TANK_UP) {
-					// ·½·¨1£ºÂÄ´ø³ÖĞø×ª¶¯
+					// æ–¹æ³•1ï¼šå±¥å¸¦æŒç»­è½¬åŠ¨
 					nowTank->setHindered(TANK_UP);
-					nowTank->setPositionY(nowTank->getPositionY() - 1); // ±ÜÃâ¼ì²â³É¹¦ºóÌ¹¿Ë³ÖĞøÊÜ£¬ÎŞ·¨ĞĞ¶¯Ôì³É¿¨×¡
+					nowTank->setPositionY(nowTank->getPositionY() - 1); // é¿å…æ£€æµ‹æˆåŠŸåå¦å…‹æŒç»­å—ï¼Œæ— æ³•è¡ŒåŠ¨é€ æˆå¡ä½
 				}
 				if (nowTank->getDirection() == TANK_DOWN) {
-					// ·½·¨1£ºÂÄ´ø³ÖĞø×ª¶¯
+					// æ–¹æ³•1ï¼šå±¥å¸¦æŒç»­è½¬åŠ¨
 					nowTank->setHindered(TANK_DOWN);
-					nowTank->setPositionY(nowTank->getPositionY() + 1); // ±ÜÃâ¼ì²â³É¹¦ºóÌ¹¿Ë³ÖĞøÊÜ£¬ÎŞ·¨ĞĞ¶¯Ôì³É¿¨×¡
+					nowTank->setPositionY(nowTank->getPositionY() + 1); // é¿å…æ£€æµ‹æˆåŠŸåå¦å…‹æŒç»­å—ï¼Œæ— æ³•è¡ŒåŠ¨é€ æˆå¡ä½
 				}
 				if (nowTank->getDirection() == TANK_LEFT) {
-					// ·½·¨1£ºÂÄ´ø³ÖĞø×ª¶¯
+					// æ–¹æ³•1ï¼šå±¥å¸¦æŒç»­è½¬åŠ¨
 					nowTank->setHindered(TANK_LEFT);
-					nowTank->setPositionX(nowTank->getPositionX() + 1); // ±ÜÃâ¼ì²â³É¹¦ºóÌ¹¿Ë³ÖĞøÊÜ£¬ÎŞ·¨ĞĞ¶¯Ôì³É¿¨×¡
+					nowTank->setPositionX(nowTank->getPositionX() + 1); // é¿å…æ£€æµ‹æˆåŠŸåå¦å…‹æŒç»­å—ï¼Œæ— æ³•è¡ŒåŠ¨é€ æˆå¡ä½
 				}
 				if (nowTank->getDirection() == TANK_RIGHT) {
-					// ·½·¨1£ºÂÄ´ø³ÖĞø×ª¶¯
+					// æ–¹æ³•1ï¼šå±¥å¸¦æŒç»­è½¬åŠ¨
 					nowTank->setHindered(TANK_RIGHT);
-					nowTank->setPositionX(nowTank->getPositionX() - 1); // ±ÜÃâ¼ì²â³É¹¦ºóÌ¹¿Ë³ÖĞøÊÜ£¬ÎŞ·¨ĞĞ¶¯Ôì³É¿¨×¡
+					nowTank->setPositionX(nowTank->getPositionX() - 1); // é¿å…æ£€æµ‹æˆåŠŸåå¦å…‹æŒç»­å—ï¼Œæ— æ³•è¡ŒåŠ¨é€ æˆå¡ä½
 				}
 			}
 			if (type == OCEAN_ID) {
 				m_deleteTankList.pushBack(nowTank);
+				if (nowTank->tag_id == MY_TANK_ID) {
+					if (max_num > 0) {
+
+						m_tankList.pushBack(m_tank);
+						this->addChild(m_tank, 1, 1);
+						m_tank->tag_id = MY_TANK_ID;
+						m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH / 2, 100, 1, 2);
+					}
+					else
+					{
+						attackBase();
+					}
+					max_num--;
+				}
+
 			}
 		}
-		// Ì¹¿ËÓëÌ¹¿Ë
-		for (int j = 0; j < m_tankList.size(); j++)
-		{
+		// å¦å…‹ä¸å¦å…‹
+		for (int j = 0; j < m_tankList.size(); j++) {
 			auto nowTank = m_tankList.at(i);
 			auto anotherTank = m_tankList.at(j);
 			if ((nowTank->getLife() && anotherTank->getLife()) && (anotherTank->getID() != nowTank->getID()) && (nowTank->getRect().intersectsRect(anotherTank->getRect())))
 			{
-				// ÕıÔÚÔË¶¯µÄÌ¹¿Ë²Å×÷³öÈçÏÂ¶¯×÷
+				// æ­£åœ¨è¿åŠ¨çš„å¦å…‹æ‰ä½œå‡ºå¦‚ä¸‹åŠ¨ä½œ
 				if (nowTank->getDirection() == TANK_UP && nowTank->isMoving())
 				{
 					nowTank->Stay(TANK_UP);
@@ -209,10 +208,36 @@ void GameClient::update(float delta)
 					nowTank->Stay(TANK_RIGHT);
 				}
 			}
-		}
+			if (anotherTank->getID() == nowTank->getID()) {
 
-		// Ì¹¿ËÓë×Óµ¯
+			}
+		}
+		// åŸºåœ°ä¸å­å¼¹
 		auto tank = m_tankList.at(i);
+		auto base = this->getChildByTag(BASE_ID);
+		for (int j = 0; j < tank->getBulletList().size(); j++)
+		{
+			auto bullet = tank->getBulletList().at(j);
+
+			if (base->getBoundingBox().intersectsRect(bullet->getRect()))
+			{
+				base->setVisible(false);
+				auto baseSprite = Sprite::create("Chapter12/tank/base1.png");
+				baseSprite->setPosition(31 * tileSize.width, 1 * tileSize.height);
+				this->addChild(baseSprite, 3, BASE_ID);
+
+				bullet->hit_count += 1;
+				//if ((bullet->type == PENETRATE && bullet->hit_count >= 2) || (bullet->type == NORMAL && bullet->hit_count >= 1)) {
+					// å­å¼¹æ¶ˆé™¤
+				bullet->setLife(0);
+				m_deleteBulletList.pushBack(bullet);
+				gameOver();
+
+			}
+
+
+		}
+		// å¦å…‹ä¸å­å¼¹
 		for (int j = 0; j < tank->getBulletList().size(); j++)
 		{
 			auto bullet = tank->getBulletList().at(j);
@@ -224,18 +249,138 @@ void GameClient::update(float delta)
 					if (bullet->getRect().intersectsRect(tank_another->getRect()))
 					{
 						bullet->hit_count += 1;
-						if ((bullet->type == PENETRATE && bullet->hit_count >= 2) ||(bullet->type == NORMAL && bullet->hit_count >= 1) ) {
-							// ×Óµ¯Ïû³ı
-							m_deleteBulletList.pushBack(bullet);
+						//if ((bullet->type == PENETRATE && bullet->hit_count >= 2) || (bullet->type == NORMAL && bullet->hit_count >= 1)) {
+							// å­å¼¹æ¶ˆé™¤
+						bullet->setLife(0);
+						m_deleteBulletList.pushBack(bullet);
+
+						//}
+						//if (bullet->type == PENETRATE) {
+
+						//}
+						int life = tank_another->getLife() - 1;
+						if (life > 0) {
+							tank_another->setLife(life);
 						}
-						// Ì¹¿ËÏû³ı
-						m_deleteTankList.pushBack(tank_another);
+						else {
+							// å¦å…‹æ¶ˆé™¤å¹¶åˆ›å»ºæ–°çš„å¦å…‹
+							
+							int level ;
+							if (tank->getLevel() < 8) {
+								level = tank->getLevel() + 1;
+							}
+							else
+								level = 8;
+							tank->setLevel(level);
+							tank->setLife(level);
+							CCParticleSystemQuad* ps = CCParticleSystemQuad::create
+							("Particle/update.plist");
+							ps->setPosition(tank->getPosition());
+							ps->setDuration(1);
+							ps->setAutoRemoveOnFinish(true);
+							ps->setScaleX(0.08);
+							ps->setScaleY(0.12);
+							this->addChild(ps);
+
+							int m_textureX = ((tank->getLevel() - 1) * 4 + 1) * 14;
+							int m_textureY = 1 * 14;
+							tank->setTextureRect(Rect(m_textureX - 19.0, m_textureY - 19.0, 28, 28));
+							//tank->setPosition(Vec2(tank->getPosition().x + 1, tank->getPosition().y + 1));
+							m_deleteTankList.pushBack(tank_another);
+
+							SimpleAudioEngine::getInstance()->playEffect("sound/explosion.wav", false);
+							if (tank_another->tag_id == MY_TANK_ID) {
+
+								if (max_num > 0) {
+									m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH / 2, 100, 1, 2);
+
+									this->addChild(m_tank, 1, 1);
+									m_tank->tag_id = MY_TANK_ID;
+									m_tankList.pushBack(m_tank);
+
+								}
+								else
+								{
+									attackBase();
+								}
+								max_num--;
+							}
+							else {
+								CCParticleSystemQuad* pss = CCParticleSystemQuad::create
+								("Particle/ring.plist");
+								pss->setPosition(tank_another->getPosition());
+								pss->setDuration(1);
+								pss->setAutoRemoveOnFinish(true);
+								pss->setScaleX(0.08);
+								pss->setScaleY(0.08);
+								this->addChild(pss);
+								int thenum = tank_another->getLevel() * 50;
+								auto label = Label::createWithBMFont("fonts/futura-48.fnt", StringUtils::format("%d", thenum));
+								this->addChild(label, 5);
+								label->setScale(0.5);
+								label->setPosition(tank_another->getPosition());
+								label->runAction(CCSequence::create(CCDelayTime::create(1), CCFadeOut::create(1), CCRemoveSelf::create(true), NULL));//2ç§’åæ¶ˆå¤±
+								player.score = player.score + thenum;
+
+
+
+								if (all_enemy > attend_enemy && m_tankList.size() <= 4) {
+									int en = tank_another->tag_id - ENEMY_TANK_ID;
+									addEnemy(en);
+									//this->schedule(schedule_selector(GameClient::updatePath, this), 0.5, kRepeatForever, 0);
+									all_enemy--;
+								}
+								else if (all_enemy == 0) {
+									gameOver();
+								}
+								else {
+									all_enemy--;
+								}
+
+							}
+						}
+
+
 					}
 				}
 			}
 		}
 
-		// ×Óµ¯ºÍÇ½
+		// å­å¼¹ä¸å­å¼¹
+		for (int j = 0; j < tank->getBulletList().size(); j++)
+		{
+			auto bullet = tank->getBulletList().at(j);
+			for (int k = 0; k < m_tankList.size(); k++)
+			{
+				auto tank_another = m_tankList.at(k);
+				if (tank->getID() != tank_another->getID())
+
+				{
+					for (int m = 0; m < tank_another->getBulletList().size(); m++) {
+						auto bullet_another = tank_another->getBulletList().at(m);
+
+						if (bullet->getRect().intersectsRect(bullet_another->getRect()))
+						{
+							bullet->hit_count += 1;
+							bullet_another->hit_count++;
+							//if ((bullet->type == PENETRATE && bullet->hit_count >= 2) || (bullet->type == NORMAL && bullet->hit_count >= 1)) {
+								// å­å¼¹æ¶ˆé™¤
+							m_deleteBulletList.pushBack(bullet);
+							bullet->setLife(0);
+							//}
+							// å­å¼¹æ¶ˆé™¤
+							//if ((bullet_another->type == PENETRATE && bullet_another->hit_count >= 2) || (bullet_another->type == NORMAL && bullet_another->hit_count >= 1)) {
+							m_deleteBulletList.pushBack(bullet_another);
+							bullet_another->setLife(0);
+							//}
+						}
+
+					}
+				}
+			}
+		}
+
+		// å­å¼¹å’Œå¢™
 		for (int j = 0; j < tank->getBulletList().size(); j++)
 		{
 			auto bullet = tank->getBulletList().at(j);
@@ -275,17 +420,19 @@ void GameClient::update(float delta)
 
 			if (type != NONE) {
 				if (type == BRICK_ID || type == BLOCK_ID) {
-					// ×Óµ¯Ïû³ı
+					// å­å¼¹æ¶ˆé™¤
 					if (type == BRICK_ID) {
 						bullet->hit_count += 1;
 					}
 					else {
 						bullet->hit_count += 2;
 					}
-					if ((bullet->type == PENETRATE && bullet->hit_count >= 2) || (bullet->type == NORMAL && bullet->hit_count >= 1)) {
-						// ×Óµ¯Ïû³ı
-						m_deleteBulletList.pushBack(bullet);
-					}					
+					//if ((bullet->type == PENETRATE && bullet->hit_count >= 2) || (bullet->type == NORMAL && bullet->hit_count >= 1)) {
+						// å­å¼¹æ¶ˆé™¤
+					bullet->setLife(0);
+					m_deleteBulletList.pushBack(bullet);
+
+					//}
 					if (type == BRICK_ID) {
 						auto tile = map_layer->getTileAt(Vec2(k1, k2));
 						tile->setVisible(false);
@@ -295,7 +442,7 @@ void GameClient::update(float delta)
 				}
 			}
 		}
-		// Çå³ıÉ¾³ı×Óµ¯ÁĞ±í
+		// æ¸…é™¤åˆ é™¤å­å¼¹åˆ—è¡¨
 		for (int j = 0; j < m_deleteBulletList.size(); j++)
 		{
 			auto bullet = m_deleteBulletList.at(j);
@@ -304,88 +451,157 @@ void GameClient::update(float delta)
 			bullet->Blast();
 		}
 
-		// Çå³ıÉ¾³ıÌ¹¿ËÁĞ±í
-		for (int j = 0; j < m_deleteTankList.size(); j++)
-		{
+		// æ¸…é™¤åˆ é™¤å¦å…‹åˆ—è¡¨
+		for (int j = 0; j < m_deleteTankList.size(); j++) {
+
 			auto tank = m_deleteTankList.at(j);
 			m_deleteTankList.eraseObject(tank);
 			m_tankList.eraseObject(tank);
 			tank->Blast();
 		}
+
 		m_deleteBulletList.clear();
 		m_deleteBrickList.clear();
 		m_deleteTankList.clear();
 	}
 
 }
-
-// »æÖÆ4¸ö»Ø×Ö×©¿é
-void GameClient::createBackGround()
-{
-	auto map = TMXTiledMap::create("Chapter12/tank/map.tmx");
-	//map->setPosition(Vec2(22, 8));
-	map_layer = map->getLayer("back");
-	//map_layer->setPosition(Vec2(22, 8));
-	tileSize=map->getTileSize();
-	this->addChild(map, 10);
-	
-	//drawBigBG(Vec2(16 * 16, 25 * 16));
-	//drawBigBG(Vec2(44 * 16, 25 * 16));
-	//drawBigBG(Vec2(16 * 16, 14 * 16));
-	//drawBigBG(Vec2(44 * 16, 14 * 16));
-}
-
-// »æÖÆµ¥¸ö»Ø×Ö×©¿é
-void GameClient::drawBigBG(Vec2 position)
-{
-	for (int i = -2;i < 4;i ++)
+void GameClient::addEnemy(int k) {
+	int x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
+	int tile_x = x / tileSize.width;
+	int tile_y = (visibleSize.height - y) / tileSize.height;
+	int id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
+	while (id != 0)
 	{
-		for (int j = -2;j < 4;j ++)
-		{
-			if ((i == 1)&&(j == 0) || (i == 0)&&(j == 0) || (i == 1)&&(j == 1) || (i == 0)&&(j == 1))
-			{
-				// ÖĞ¼äÁô¿ÕĞÎ³É»Ø×Ö
-				continue;
-			}
-			auto brick = Brick::create(Vec2(position.x + (0.5 - i) * 16, position.y + (0.5 - j) * 16));
-			m_bgList.pushBack(brick);
-			this->addChild(brick, 2);
-		}
+		x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
+		tile_x = x / tileSize.width;
+		tile_y = (visibleSize.height - y) / tileSize.height;
+		id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
 	}
+	enemy[k] = Tank::create(ENEMY_TANK_ID, x, y, 2, 1);
+
+	//enemy[i] = Tank::create(ENEMY_TANK_ID, enemy_point[i].x, enemy_point[i].y, 2, 1);
+	enemy[k]->DontMove();
+
+	m_tankList.pushBack(enemy[k]);
+	this->addChild(enemy[k], 1, k + ENEMY_TANK_ID);
+	enemy[k]->tag_id = k + ENEMY_TANK_ID;
 }
+
+
+
+//è¿›æ”»åŸºåœ°
+
+void GameClient::attackBase() {
+
+}
+void GameClient::gameOver() {
+	Director::getInstance()->pause();//åœæ­¢å¦å…‹ä»¬çš„åŠ¨ä½œ
+
+
+
+
+	////æ·»åŠ é¢œè‰²å±‚
+	//auto colorLayer = LayerColor::create(Color4B(128, 125, 200, 255), 480, visibleSize.height);
+	//colorLayer->setPosition(Vec2(200, 0));
+	//this->addChild(colorLayer);
+
+	//ui::ListView* lv = ui::ListView::create();
+	//lv->setDirection(ui::ScrollView::Direction::VERTICAL);//è®¾ç½®æ–¹å‘ä¸ºå‚ç›´æ–¹å‘
+	//lv->setBounceEnabled(true);
+	//lv->setBackGroundImage("white_bg.png");
+	//lv->setBackGroundImageScale9Enabled(true);
+	//lv->setContentSize(Size(300, visibleSize.height));
+	//lv->setAnchorPoint(Vec2(0.5, 0.5));
+	//lv->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+	//lv->setItemsMargin(10);
+	//colorLayer->addChild(lv);
+
+
+
+
+	//auto size = Size(300, 100);
+	//for (int i = 0; i < 15; ++i)
+	//{
+	//	auto image = ui::ImageView::create("test.png");
+	//	image->setPosition(Vec2(image->getContentSize().width / 2, size.height / 2));
+
+	//	//listViewçš„iteméœ€è¦ç”¨Layoutå¯¹è±¡
+	//	auto layout = cocos2d::ui::Layout::create();
+
+	//	layout->setBackGroundImageScale9Enabled(true);
+
+
+	//	//æˆ–è€…è®¾è®¡èƒŒæ™¯è‰²
+	//	//layout->setBackGroundColorType(cocos2d::ui::Layout::BackGroundColorType::SOLID);
+	//	//layout->setBackGroundColor(Color3B(255, 255, 255));
+
+	//	layout->setContentSize(size);
+
+	//	layout->addChild(image);
+	//	lv->addChild(layout);
+
+	//}
+
+
+
+
+	//Director::getInstance()->replaceScene(RankList::createScene());
+
+	auto button = Button::create("Chapter12/tank/replay.png", "Chapter12/tank/replay.png", "Chapter12/tank/replay.png");//æ·»åŠ restartæŒ‰é’®
+	button->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 8));
+	button->ignoreContentAdaptWithSize(false);
+	button->setContentSize(visibleSize / 5);
+	this->addChild(button, 12);
+	button->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+		switch (type)
+		{
+		case ui::Widget::TouchEventType::BEGAN:
+			break;
+		case ui::Widget::TouchEventType::ENDED:
+			Director::getInstance()->replaceScene(TransitionSlideInT::create(1, GameClient::createScene()));
+			Director::getInstance()->resume();
+			break;
+		default:
+			break;
+		}
+		});
+}
+
 
 void GameClient::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event)
 {
 	switch (keyCode)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_A:
-		{
-			m_tank->MoveLeft();
-		}
-		break;
+	{
+		m_tank->MoveLeft();
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_W:
 		// m_tank->MoveUP();
-		{
-			m_tank->MoveUP();
-		}
-		break;
+	{
+		m_tank->MoveUP();
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_S:
 		// m_tank->MoveDown();
-		{
-			m_tank->MoveDown();
-		}
-		break;
+	{
+		m_tank->MoveDown();
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_D:
 		// m_tank->MoveRight();
-		{
-			m_tank->MoveRight();
-		}
-		break;
+	{
+		m_tank->MoveRight();
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_F:
 		if (set_convey) {
 			can_convey = 1;
 		}
 		break;
+
 	}
 }
 
@@ -394,35 +610,37 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 	switch (keyCode)
 	{
 	case cocos2d::EventKeyboard::KeyCode::KEY_A:
-		{
-			m_tank->Stay(TANK_LEFT);
-		}
-		break;
+	{
+		m_tank->Stay(TANK_LEFT);
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_W:
-		{
-			m_tank->Stay(TANK_UP);
-		}
-		break;
+	{
+		m_tank->Stay(TANK_UP);
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_S:
-		{
-			m_tank->Stay(TANK_DOWN);
-		}
-		break;
+	{
+		m_tank->Stay(TANK_DOWN);
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_D:
-		{
-			m_tank->Stay(TANK_RIGHT);
-		}
-		break;
+	{
+		m_tank->Stay(TANK_RIGHT);
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_K:
-		{
-			m_tank->Fire();
-		}
-		break;
+	{
+		SimpleAudioEngine::getInstance()->playEffect("sound/shot.wav", false);
+		m_tank->Fire();
+	}
+	break;
 	case cocos2d::EventKeyboard::KeyCode::KEY_F:
 		if (can_convey) {
 			can_convey = 0;
 			set_convey = 0;
 			Vec2 p;
+
 			p.x = (int)(convey_p.x / tileSize.width);
 			p.y = (int)((visibleSize.height - convey_p.y) / tileSize.height);
 			int id = map_layer->getTileGIDAt(p);
@@ -430,21 +648,268 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 				return;
 			}
 			m_tank->setPosition(convey_p);
+			/*int x = convey_p.x, y = convey_p.y;
+			m_map[x][y].status = DESTINATION;
+			m_destination = &m_map[x][y];*/
+
+			m_draw->clear();
+			updatePath(1.0);
 		}
 		break;
+
+
+
+	case cocos2d::EventKeyboard::KeyCode::KEY_P:
+	{
+		pau = !pau;
+		if (pau) {
+			Director::getInstance()->pause();
+		}
+		else {
+			Director::getInstance()->resume();
+		}
+
+	}
+	break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_H: {
+
+	}
+											   break;
+	case cocos2d::EventKeyboard::KeyCode::KEY_R:
+	{
+		gameOver();
+
+	}
+	break;
+
+
+
 	}
 
 }
 
-//////////////////////////////////////////////////////////////////////////
-// ´¦ÀíÍøÂç´«ÊäÊı¾İÊ±×÷³öµÄÏìÓ¦
-void GameClient::addTank(int id, float x, float y, int dir, int kind)
+//æ‰€æœ‰æ•Œæ–¹å¦å…‹è¿›å…¥å¾…å°„å‡»åˆ—è¡¨
+void GameClient::addFire(float t)
 {
-	m_maxTank[tankcount] = Tank::create(id, x, y, dir, kind);
-	m_tankList.pushBack(m_maxTank[tankcount++]);
+	for (int i = 0; i < attend_enemy; i++) {
+		m_shouldFireList.pushBack(enemy[i]);
+	}
 }
 
-void GameClient::addFire(Tank* tank)
-{
-	m_shouldFireList.pushBack(tank);
+void GameClient::onMouseUp(Event* event) {
+	EventMouse* e = (EventMouse*)event;
+	convey_p.x = e->getCursorX();
+	convey_p.y = e->getCursorY();
+	set_convey = 1;
+
+
 }
+void GameClient::initMap() {
+	//æ ¹æ®åœ°å›¾å®½ã€é«˜åˆ†é…æ•°ç»„ç©ºé—´
+	m_map = new mapNode * [MAP_WIDTH];
+	for (int n = 0; n < MAP_WIDTH; n++)
+		m_map[n] = new mapNode[MAP_HEIGHT];
+	vector<int> not_access_gid = { BRICK_ID,BLOCK_ID,OCEAN_ID };
+	//ä¾æ¬¡æ‰«æåœ°å›¾æ•°ç»„æ¯ä¸€ä¸ªå•å…ƒ
+	for (int i = 0; i < MAP_WIDTH; i++)
+	{
+		for (int j = 0; j < MAP_HEIGHT; j++)
+		{
+			//è‹¥å½“å‰ä½ç½®ä¸ºå¢™ä½“ç“¦ç‰‡è®¾ç½®ä¸ºä¸å¯é€šè¿‡
+			bool flag = true;
+			for (int id : not_access_gid) {
+				if (map_layer->getTileGIDAt(Vec2(i, j)) == id) {
+					flag = false;
+					break;
+				}
+			}
+			if (!flag)
+			{
+				mapNode temp = { NOT_ACCESS, i, j, 0, 0, 0, nullptr };
+				m_map[i][j] = temp;
+			}
+
+			//å¦åˆ™è®¾ç½®ä¸ºå¯ä»¥é€šè¿‡
+			else
+			{
+				mapNode temp = { ACCESS, i, j, 0, 0, 0, nullptr };
+				m_map[i][j] = temp;
+			}
+		}
+	}
+}
+
+void GameClient::updatePath(float dt) {
+	if (max_num > 0) {
+		int x = m_tank->getPositionX() / tileSize.width;
+		int y = (visibleSize.height - m_tank->getPositionY()) / tileSize.height;
+		int tmp_ = m_map[x][y].status;
+		m_map[x][y].status = DESTINATION;
+		auto m_dest = &m_map[x][y];
+
+
+		for (int i = 0; i < m_tankList.size(); i++) {
+			auto nowTank = m_tankList.at(i);
+
+			if (nowTank->tank_kind == 1) {
+				nowTank->stopActionByTag(ENEMY_TANK_ID);
+				int x = nowTank->getPositionX() / tileSize.width;
+				int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
+				int tmp = m_map[x][y].status;
+				m_map[x][y].status = ORIGIN;
+				m_map[x][y].parent = nullptr;
+				auto m_ori = &m_map[x][y];
+				aStar(m_map, m_ori, m_dest, nowTank->tag_id);
+				m_map[x][y].status = tmp;
+			}
+		}
+		m_map[x][y].status = tmp_;
+	}
+
+}
+
+int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id)
+{
+	if (origin == destination) {
+		return 0;
+	}
+	openList* open = new openList;
+	open->next = nullptr;
+	open->openNode = origin;
+	closedList* close = new closedList;
+	close->next = nullptr;
+	close->closedNode = nullptr;
+	//å¾ªç¯æ£€éªŒ8ä¸ªæ–¹å‘çš„ç›¸é‚»èŠ‚ç‚¹
+	while (checkNeighboringNodes(map, open, open->openNode, destination))
+	{
+		//ä»OPENè¡¨ä¸­é€‰å–èŠ‚ç‚¹æ’å…¥CLOSEDè¡¨
+		insertNodeToClosedList(close, open);
+		//è‹¥OPENè¡¨ä¸ºç©ºï¼Œè¡¨æ˜å¯»è·¯å¤±è´¥
+		if (open == nullptr)
+		{
+			break;
+		}
+		//è‹¥ç»ˆç‚¹åœ¨OPENè¡¨ä¸­ï¼Œè¡¨æ˜å¯»è·¯æˆåŠŸ
+		if (open->openNode->status == DESTINATION)
+		{
+			mapNode* tempNode = open->openNode;
+			//è°ƒç”¨moveOnPathï¼ˆï¼‰å‡½æ•°æ§åˆ¶ç²¾çµåœ¨è·¯å¾„ä¸Šç§»åŠ¨
+			moveOnPath(tempNode, tag_id);
+			break;
+		}
+	}
+	return 0;
+}
+void GameClient::moveOnPath(mapNode* tempNode, int tag_id)
+{
+	//å£°æ˜å­˜å‚¨è·¯å¾„åæ ‡çš„ç»“æ„ä½“
+	struct pathCoordinate { int x; int y; };
+	//åˆ†é…è·¯å¾„åæ ‡ç»“æ„ä½“æ•°ç»„
+	pathCoordinate* path = new pathCoordinate[MAP_WIDTH * MAP_HEIGHT];
+	//åˆ©ç”¨çˆ¶èŠ‚ç‚¹ä¿¡æ¯é€†åºå­˜å‚¨è·¯å¾„åæ ‡
+	int loopNum = 0;
+	while (tempNode != nullptr)
+	{
+		path[loopNum].x = tempNode->xCoordinate;
+		path[loopNum].y = tempNode->yCoordinate;
+		loopNum++;
+		tempNode = tempNode->parent;
+	}
+	//å°†ç¬‘è„¸ç²¾çµçš„åæ ‡å­˜ä¸ºç»˜åˆ¶çº¿æ®µèµ·ç‚¹
+	auto smile = this->getChildByTag(tag_id);
+	smile->stopAllActions();
+	int fromX = smile->getPositionX();
+	int fromY = smile->getPositionY();
+	//å£°æ˜åŠ¨ä½œå‘é‡å­˜å‚¨åŠ¨ä½œåºåˆ—
+	Vector<FiniteTimeAction*> actionVector;
+	//ä»ç»“æ„ä½“æ•°ç»„å°¾éƒ¨å¼€å§‹æ‰«æ
+	for (int j = loopNum - 2; j >= 0; j--)
+	{
+		//å°†åœ°å›¾æ•°ç»„åæ ‡è½¬åŒ–ä¸ºå±å¹•å®é™…åæ ‡
+		int realX = (path[j].x + 0.5) * UNIT;
+		int realY = visibleSize.height - (path[j].y + 0.5) * UNIT;
+		//åˆ›å»ºç§»åŠ¨åŠ¨ä½œå¹¶å­˜å…¥åŠ¨ä½œå‘é‡
+
+
+
+		auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
+		actionVector.pushBack(moveAction);
+
+
+		//ç»˜åˆ¶ä»èµ·ç‚¹åˆ°ä¸‹ä¸€ä¸ªåœ°å›¾å•å…ƒçš„çº¿æ®µ
+		//m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+
+		//å°†å½“å‰åæ ‡ä¿å­˜ä¸ºä¸‹ä¸€æ¬¡ç»˜åˆ¶çš„èµ·ç‚¹
+		fromX = realX;
+		fromY = realY;
+	}
+	//åˆ›å»ºåŠ¨ä½œåºåˆ—
+	auto actionSequence = Sequence::create(actionVector);
+	actionSequence->setTag(ENEMY_TANK_ID);
+	//ç¬‘è„¸ç²¾çµæ‰§è¡Œç§»åŠ¨åŠ¨ä½œåºåˆ—
+
+	smile->runAction(actionSequence);
+
+}
+
+// ç»˜åˆ¶èƒŒæ™¯åœ°å›¾
+void GameClient::createBackGround()
+{
+	auto map = TMXTiledMap::create("Chapter12/tank/map1.tmx");
+	//map->setPosition(Vec2(22, 8));
+	map_layer = map->getLayer("back");
+	//map_layer->setPosition(Vec2(22, 8));
+	tileSize = map->getTileSize();
+	this->addChild(map, 10);
+
+	m_map = nullptr;
+	//å¯»è·¯èµ·ç‚¹æŒ‡é’ˆ
+
+	m_destination = nullptr;
+	auto baseSprite = Sprite::create("Chapter12/tank/base.png");
+	baseSprite->setPosition(31 * tileSize.width, 1 * tileSize.height);
+	this->addChild(baseSprite, 3, BASE_ID);
+}
+
+//void GameClient::menuSubmitCallback(Ref* pSender)
+//{
+//	// è·å–æäº¤çš„æˆç»©
+//	p[max_range].name = textEdit->getString();
+//	p[max_range].score = player.score;
+//
+//	bool isExist = false;
+//	// ç©å®¶æ˜¯å¦å·²ç»åœ¨æ’è¡Œæ¦œ
+//	for (int i = 0; i < max_range; i++) {
+//		if (p[i].name == p[max_range].name) {
+//			p[i].score = p[i].score > p[max_range].score ? p[i].score : p[max_range].score;
+//			isExist = true;
+//			break;
+//		}
+//	}
+//
+//	if (!isExist) {
+//		// æ’ä¸ªåºï¼ˆå†’æ³¡ï¼‰
+//		for (int i = 0; i < max_range; i++) {
+//			for (int j = max_range - i; j > 0; j--) {
+//				if (p[j].score > p[j - 1].score) {
+//					Player temp;
+//					temp = p[j];
+//					p[j] = p[j - 1];
+//					p[j - 1] = temp;
+//				}
+//			}
+//		}
+//	}
+//
+//	// å­˜å…¥XML
+//	for (int i = 1; i <= max_range; i++) {
+//		// ç»™ XML ç›¸åº”å†…å®¹èµ‹å€¼
+//		UD_setString(StringUtils::format("p%d_name", i).c_str(), p[i - 1].name);
+//		UD_setInt(StringUtils::format("p%d_score", i).c_str(), p[i - 1].score);
+//	}
+//}
+
+
+
+
+

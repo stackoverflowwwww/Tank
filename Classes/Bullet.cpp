@@ -13,15 +13,16 @@ Bullet::~Bullet()
 Bullet* Bullet::create(Vec2 position, float speed, int dir)
 {
 	Bullet* pRet = new(std::nothrow) Bullet();
-	float p=rand()*1.0 / RAND_MAX;
-	if (p >= 0.5) {
+	float p = rand() * 1.0 / RAND_MAX;
+	/*if (p >= 0.5) {
 		pRet->type = PENETRATE;
-	}
-	if (pRet && pRet->init(position, speed, dir,pRet->type))
+	}*/
+	if (pRet && pRet->init(position, speed, dir, pRet->type))
 	{
 		pRet->autorelease();
 		return pRet;
-	} else
+	}
+	else
 	{
 		delete pRet;
 		pRet = NULL;
@@ -29,13 +30,29 @@ Bullet* Bullet::create(Vec2 position, float speed, int dir)
 	}
 }
 
-bool Bullet::init(Vec2 position, float speed, int dir,BulletType type)
+bool Bullet::init(Vec2 position, float speed, int dir, BulletType type)
 {
 	if (!BaseObject::init())
 	{
 		return false;
 	}
-	if (type == NORMAL) {
+	m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/bullet.png");
+	switch (dir)
+	{
+	case BULLET_UP:
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(0, 0, 8, 8));
+		break;
+	case BULLET_DOWN:
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(8 * 2, 0, 8, 8));
+		break;
+	case BULLET_LEFT:
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(8 * 3, 0, 8, 8));
+		break;
+	case BULLET_RIGHT:
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(8, 0, 8, 8));
+		break;
+	}
+	/*if (type == NORMAL) {
 		m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/bullet.png");
 		switch (dir)
 		{
@@ -53,7 +70,7 @@ bool Bullet::init(Vec2 position, float speed, int dir,BulletType type)
 			break;
 		}
 	}
-	else if(type==PENETRATE){
+	else if (type == PENETRATE) {
 		m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/bullet2.png");
 		m_sprite = Sprite::createWithTexture(m_texture, Rect(0, 0, 8, 8));
 		switch (dir)
@@ -71,7 +88,7 @@ bool Bullet::init(Vec2 position, float speed, int dir,BulletType type)
 			m_sprite->setRotation(90);
 			break;
 		}
-	}
+	}*/
 	m_sprite->setPosition(Vec2::ZERO);
 	this->addChild(m_sprite);
 
@@ -87,7 +104,7 @@ bool Bullet::init(Vec2 position, float speed, int dir,BulletType type)
 
 void Bullet::update(float delta)
 {
-	m_rect = Rect(getPositionX() - 4, getPositionY() - 4, 8, 8); // ¸üÐÂrect
+	m_rect = Rect(getPositionX() - 4, getPositionY() - 4, 8, 8); // æ›´æ–°rect
 	if (this->getLife() <= 0)
 	{
 		this->unscheduleUpdate();
@@ -97,7 +114,8 @@ void Bullet::update(float delta)
 		if (this->getPositionY() <= WINDOWHEIGHT - 10)
 		{
 			this->setPositionY(this->getPositionY() + this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -107,7 +125,8 @@ void Bullet::update(float delta)
 		if (this->getPositionY() >= 10)
 		{
 			this->setPositionY(this->getPositionY() - this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -117,7 +136,8 @@ void Bullet::update(float delta)
 		if (this->getPositionX() >= 10)
 		{
 			this->setPositionX(this->getPositionX() - this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -127,7 +147,8 @@ void Bullet::update(float delta)
 		if (this->getPositionX() <= WINDOWWIDTH - 10)
 		{
 			this->setPositionX(this->getPositionX() + this->getSpeed());
-		} else
+		}
+		else
 		{
 			Blast();
 		}
@@ -136,17 +157,17 @@ void Bullet::update(float delta)
 
 void Bullet::Blast()
 {
-	this->setVisible(false);   // ×Óµ¯ÏûÊ§
+	this->setVisible(false);   // å­å¼¹æ¶ˆå¤±
 	setLife(0);
 	auto explode = Sprite::create("Chapter12/tank/explode1.png");
 	this->getParent()->addChild(explode, 10);
-	explode->setPosition(this->getPosition());  // ÏÔÊ¾±¬Õ¨
+	explode->setPosition(this->getPosition());  // æ˜¾ç¤ºçˆ†ç‚¸
 	explode->runAction(Sequence::create(
 		DelayTime::create(0.1f),
-		FadeOut::create(0.1f),                   // ±¬Õ¨ÏûÊ§
+		FadeOut::create(0.1f),                   // çˆ†ç‚¸æ¶ˆå¤±
 		CallFunc::create(CC_CALLBACK_0(Bullet::deleteObj, this, explode)),
 		NULL
-		));
+	));
 }
 
 void Bullet::deleteObj(Sprite* obj)

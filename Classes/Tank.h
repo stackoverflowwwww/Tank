@@ -12,14 +12,14 @@ using namespace cocos2d;
 using namespace cocostudio;
 using namespace cocos2d::ui;
 
-#define TANKBASELIFE 1    // TANK»ù´¡ÉúÃü
-#define TANKSPEED    1    // TANKÄ¬ÈÏËÙ¶È
-#define TANKSIZE    32    // TANK³ß´ç´óĞ¡
-#define TANK_UP      1	  // TANKÏòÉÏ×´Ì¬
-#define TANK_DOWN    2    // TANKÏòÏÂ×´Ì¬
-#define TANK_LEFT    3    // TANKÏò×ó×´Ì¬
-#define TANK_RIGHT   4    // TANKÏòÓÒ×´Ì¬
-#define TANK_STAY    5    // TANKÍ£Ö¹×´Ì¬
+#define TANKBASELIFE 1    // TANKåŸºç¡€ç”Ÿå‘½
+#define TANKSPEED    1    // TANKé»˜è®¤é€Ÿåº¦
+#define TANKSIZE    32    // TANKå°ºå¯¸å¤§å°
+#define TANK_UP      1	  // TANKå‘ä¸ŠçŠ¶æ€
+#define TANK_DOWN    2    // TANKå‘ä¸‹çŠ¶æ€
+#define TANK_LEFT    3    // TANKå‘å·¦çŠ¶æ€
+#define TANK_RIGHT   4    // TANKå‘å³çŠ¶æ€
+#define TANK_STAY    5    // TANKåœæ­¢çŠ¶æ€
 
 class Tank : public BaseObject
 {
@@ -37,7 +37,7 @@ public:
 	}
 	void Fire();
 	void Stay(int dir);
-	void Blast();     // ±¬Õ¨Ê±ÒÑ×Ô¶¯ÉèÖÃlifeÎª0
+	void Blast();     // çˆ†ç‚¸æ—¶å·²è‡ªåŠ¨è®¾ç½®lifeä¸º0
 
 	bool isMoving() { return m_isMoving; };
 	Rect getRect() { return m_rect; };
@@ -50,23 +50,23 @@ private:
 	void deleteObj(Sprite* obj);
 
 public:
-	Sprite*     m_sprite;          // Í¼Æ¬¾«Áé
-	Texture2D*  m_texture;         // ±£´ætexture
-	Vector<Bullet*> m_bulletList;  // ×Óµ¯ÁĞ±í
+	Sprite* m_sprite;          // å›¾ç‰‡ç²¾çµ
+	Texture2D* m_texture;         // ä¿å­˜texture
+	Vector<Bullet*> m_bulletList;  // å­å¼¹åˆ—è¡¨
 
-	bool  m_moveUp;             // Ì¹¿ËÍùÉÏÒÆ¶¯
-	bool  m_moveDown;           // Ì¹¿ËÍùÏÂÒÆ¶¯
-	bool  m_moveLeft;           // Ì¹¿ËÍù×óÒÆ¶¯
-	bool  m_moveRight;			// Ì¹¿ËÍùÓÒÒÆ¶¯
+	bool  m_moveUp;             // å¦å…‹å¾€ä¸Šç§»åŠ¨
+	bool  m_moveDown;           // å¦å…‹å¾€ä¸‹ç§»åŠ¨
+	bool  m_moveLeft;           // å¦å…‹å¾€å·¦ç§»åŠ¨
+	bool  m_moveRight;			// å¦å…‹å¾€å³ç§»åŠ¨
 
-	float m_frametime;			// ÇĞ»»Í¼Æ¬Ê±¼ä²½³¤
-	float m_temptime;			// Ã¿¾­¹ıtemptimeÇĞ»»Í¼Æ¬
-	int   m_texchange;			// Ì¹¿ËÂÄ´øÎÆÀíÇĞ»»¿ØÖÆ
+	float m_frametime;			// åˆ‡æ¢å›¾ç‰‡æ—¶é—´æ­¥é•¿
+	float m_temptime;			// æ¯ç»è¿‡temptimeåˆ‡æ¢å›¾ç‰‡
+	int   m_texchange;			// å¦å…‹å±¥å¸¦çº¹ç†åˆ‡æ¢æ§åˆ¶
 
-	Rect  m_rect;               // Ì¹¿Ë°üÎ§¿ò
-	bool  m_isMoving;           // Ì¹¿ËÕıÔÚÒÆ¶¯
+	Rect  m_rect;               // å¦å…‹åŒ…å›´æ¡†
+	bool  m_isMoving;           // å¦å…‹æ­£åœ¨ç§»åŠ¨
 
-	int   m_textureX;           
+	int   m_textureX;
 	int   m_textureY;
 	int length = 16;
 	int tag_id;

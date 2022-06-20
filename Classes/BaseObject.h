@@ -10,34 +10,34 @@ class BaseObject : public Sprite
 public:
 	BaseObject() {};
 	virtual ~BaseObject() {};
-	
+
 	CREATE_FUNC(BaseObject);
 	virtual bool init();
 
 	// set and get
-	int		getLife()      { return m_life ; };
-	float	getSpeed()     { return m_speed; };
-	int		getKind()      { return m_kind ; };
+	int		getLife() { return m_life; };
+	float	getSpeed() { return m_speed; };
+	int		getKind() { return m_kind; };
 	int     getDirection() { return m_direction; };
-	int     getLevel()     { return m_level;     };
-	int     getID()        { return m_ID;        };
-	int     getHindered()  { return m_hindered;  };
+	int     getLevel() { return m_level; };
+	int     getID() { return m_ID; };
+	int     getHindered() { return m_hindered; };
 
-	void	setLife(int l)        { m_life = l;      };
-	void	setSpeed(float s)     { m_speed = s;     };
+	void	setLife(int l) { m_life = l; };
+	void	setSpeed(float s) { m_speed = s; };
 	void    setDirection(float d) { m_direction = d; };
-	void    setKind(int k)        { m_kind = k;      };
-	void    setLevel(int lev)     { m_level = lev;   };
-	void    setID(int id)         { m_ID = id;       };
-	void    setHindered(int hindered)   { m_hindered = hindered; };
-	
+	void    setKind(int k) { m_kind = k; };
+	void    setLevel(int lev) { m_level = lev; };
+	void    setID(int id) { m_ID = id; };
+	void    setHindered(int hindered) { m_hindered = hindered; };
+
 private:
-	int   m_ID;             // OBJECTµÄID
-	float m_speed;			// OBJECTµÄÒÆ¶¯ËÙ¶È
-	int   m_life;			// OBJECTµÄÉúÃüÖµ(»òÓĞĞ§Öµ)
-	int   m_direction;		// OBJECTÒÆ¶¯µÄ·½Ïò
-	int   m_kind;			// OBJECTËùÊôµÄÀàĞÍ,ÔÚ²»Í¬µÄÅÉÉúÀàÖĞÓĞ²»Í¬µÄÒâË¼
-	int   m_level;          // OBJECTµÈ¼¶
-	int   m_hindered;       // OBJECTÔÚËÄ¸ö·½ÏòÉÏÊÇ·ñÊÜµ½×è°­up.down.left.right
+	int   m_ID;             // OBJECTçš„ID
+	float m_speed;			// OBJECTçš„ç§»åŠ¨é€Ÿåº¦
+	int   m_life;			// OBJECTçš„ç”Ÿå‘½å€¼(æˆ–æœ‰æ•ˆå€¼)
+	int   m_direction;		// OBJECTç§»åŠ¨çš„æ–¹å‘
+	int   m_kind;			// OBJECTæ‰€å±çš„ç±»å‹,åœ¨ä¸åŒçš„æ´¾ç”Ÿç±»ä¸­æœ‰ä¸åŒçš„æ„æ€
+	int   m_level;          // OBJECTç­‰çº§
+	int   m_hindered;       // OBJECTåœ¨å››ä¸ªæ–¹å‘ä¸Šæ˜¯å¦å—åˆ°é˜»ç¢up.down.left.right
 };
 #endif

@@ -7,7 +7,8 @@ Tank* Tank::create(int ID, float x, float y, int dir, int _kind)
 	{
 		pRet->autorelease();
 		return pRet;
-	} else
+	}
+	else
 	{
 		delete pRet;
 		pRet = NULL;
@@ -21,7 +22,7 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	{
 		return false;
 	}
-	Director::getInstance()->setProjection(Director::Projection::_2D); // ¸ÄÎªÕý½»Í¶Ó°£¬±ÜÃâÍ¼Æ¬Ä£ºý
+	Director::getInstance()->setProjection(Director::Projection::_2D); // æ”¹ä¸ºæ­£äº¤æŠ•å½±ï¼Œé¿å…å›¾ç‰‡æ¨¡ç³Š
 
 	setLife(TANKBASELIFE); // tank life
 	setSpeed(TANKSPEED);   // tank speed
@@ -46,11 +47,11 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	setKind(kind);
 
 	// tank kind
-	if (kind == 1)
+	if (kind == 1)//æ•Œæ–¹
 	{
 		m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/player1.png");
 	}
-	if (kind == 2)
+	if (kind == 2)//æˆ‘æ–¹
 	{
 		m_texture = Director::getInstance()->getTextureCache()->addImage("Chapter12/tank/player2.png");
 	}
@@ -59,26 +60,26 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;
 	if (dir > 0 && dir < 6 && dir == TANK_UP)
 	{
-		m_textureY = 1*14;
+		m_textureY = 1 * 14;
 	}
 	if (dir > 0 && dir < 6 && dir == TANK_LEFT)
 	{
-		m_textureY = 7*14;
+		m_textureY = 7 * 14;
 	}
 	if (dir > 0 && dir < 6 && dir == TANK_RIGHT)
 	{
-		m_textureY = 3*14;
+		m_textureY = 3 * 14;
 	}
 	if (dir > 0 && dir < 6 && dir == TANK_DOWN)
 	{
-		m_textureY = 5*14;
+		m_textureY = 5 * 14;
 	}
 
-	// Ì¹¿Ë³õÊ¼×´Ì¬
-	m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX-14.0, m_textureY-14.0, 28, 28));
-	m_rect = Rect(this->getPositionX() - length, this->getPositionY() - length, 2* length, 2* length);
+	// å¦å…‹åˆå§‹çŠ¶æ€
+	m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX - 14.0, m_textureY - 14.0, 28, 28));
+	m_rect = Rect(this->getPositionX() - length, this->getPositionY() - length, 2 * length, 2 * length);
 	m_sprite->setPosition(Vec2::ZERO);
-	m_sprite->setScale(TANKSIZE/28);
+	m_sprite->setScale(TANKSIZE / 28);
 	this->addChild(m_sprite);
 
 	this->scheduleUpdate();
@@ -143,23 +144,23 @@ void Tank::Fire()
 		break;
 	}
 	auto bullet = Bullet::create(position, 3, this->getDirection());
-	m_bulletList.pushBack(bullet);            // Ìí¼Óµ½×Óµ¯ÁÐ±í
-	this->getParent()->addChild(bullet, 8);   // Ìí¼Óµ½ÓÎÏ·³¡¾°
+	m_bulletList.pushBack(bullet);            // æ·»åŠ åˆ°å­å¼¹åˆ—è¡¨
+	this->getParent()->addChild(bullet, 8);   // æ·»åŠ åˆ°æ¸¸æˆåœºæ™¯
 }
 
 void Tank::Draw()
 {
-	if(this->getLife()){
+	if (this->getLife()) {
 		m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;   // get tank textureX
 
-		// ¿ØÖÆÌ¹¿ËÂÄ´ø×ª¶¯
+		// æŽ§åˆ¶å¦å…‹å±¥å¸¦è½¬åŠ¨
 		if (m_moveUp || m_moveDown || m_moveLeft || m_moveRight)
 		{
 			m_temptime += m_frametime;
-			if(m_temptime > 5)												
+			if (m_temptime > 5)
 			{
 				m_temptime -= 5;
-				m_texchange = (m_texchange+1) % 2;
+				m_texchange = (m_texchange + 1) % 2;
 			}
 			switch (m_texchange)
 			{
@@ -167,37 +168,37 @@ void Tank::Draw()
 				m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;
 				break;
 			case 1:
-				m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14 + 2*14;
+				m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14 + 2 * 14;
 				break;
 			}
 		}
 
-		this->removeChild(m_sprite, true); // ÖØÒª£º°ÑÇ°Ò»¸ö¾«ÁéÒÆ³ý,±ÜÃâÄÚ´æÎÞ·¨ÊÍ·Å
-		m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX-14.0, m_textureY-14.0, 28, 28));
-		m_sprite->setScale(TANKSIZE/28);
-		this->addChild(m_sprite);          // ¸üÐÂ¾«ÁéÍ¼Æ¬
+		this->removeChild(m_sprite, true); // é‡è¦ï¼šæŠŠå‰ä¸€ä¸ªç²¾çµç§»é™¤,é¿å…å†…å­˜æ— æ³•é‡Šæ”¾
+		m_sprite = Sprite::createWithTexture(m_texture, Rect(m_textureX - 14.0, m_textureY - 14.0, 28, 28));
+		m_sprite->setScale(TANKSIZE / 28);
+		this->addChild(m_sprite);          // æ›´æ–°ç²¾çµå›¾ç‰‡
 	}
 }
 
 void Tank::Blast()
 {
-	this->setVisible(false);   // Ì¹¿ËÏûÊ§
+	this->setVisible(false);   // å¦å…‹æ¶ˆå¤±
 	this->setLife(0);
 	auto explode = Sprite::create("Chapter12/tank/explode2.png");
 	this->getParent()->addChild(explode);
-	explode->setPosition(this->getPosition());  // ÏÔÊ¾±¬Õ¨
+	explode->setPosition(this->getPosition());  // æ˜¾ç¤ºçˆ†ç‚¸
 	explode->runAction(Sequence::create(
 		DelayTime::create(0.3f),
-		FadeOut::create(0.3f),                  // ±¬Õ¨ÏûÊ§
+		FadeOut::create(0.3f),                  // çˆ†ç‚¸æ¶ˆå¤±
 		CallFunc::create(CC_CALLBACK_0(Tank::deleteObj, this, explode)),
 		NULL
-		));
+	));
 }
 
 void Tank::update(float t)
 {
-	m_isMoving = m_moveUp | m_moveDown | m_moveLeft | m_moveRight;				 // ¸üÐÂÒÆ¶¯×´Ì¬
-	for (int i = 0;i < m_bulletList.size();i++)
+	m_isMoving = m_moveUp | m_moveDown | m_moveLeft | m_moveRight;				 // æ›´æ–°ç§»åŠ¨çŠ¶æ€
+	for (int i = 0; i < m_bulletList.size(); i++)
 	{
 		auto nowBullet = m_bulletList.at(i);
 		if (nowBullet->getLife() <= 0)
@@ -214,7 +215,7 @@ void Tank::update(float t)
 		if (tank_kind == 1) {
 			tank_kind = 1;
 		}
-		m_textureY = 1*14;
+		m_textureY = 1 * 14;
 		if ((this->getPositionY() <= WINDOWHEIGHT - 14) && (this->getHindered() != TANK_UP))
 		{
 			setHindered(TANK_STAY);
@@ -224,7 +225,7 @@ void Tank::update(float t)
 	}
 	if (m_moveDown)
 	{
-		m_textureY = 5*14;
+		m_textureY = 5 * 14;
 		if ((this->getPositionY() >= 14) && (this->getHindered() != TANK_DOWN))
 		{
 			setHindered(TANK_STAY);
@@ -234,7 +235,7 @@ void Tank::update(float t)
 	}
 	if (m_moveLeft)
 	{
-		m_textureY = 7*14;
+		m_textureY = 7 * 14;
 		if ((this->getPositionX() >= 14) && (this->getHindered() != TANK_LEFT))
 		{
 			setHindered(TANK_STAY);
@@ -244,7 +245,7 @@ void Tank::update(float t)
 	}
 	if (m_moveRight)
 	{
-		m_textureY = 3*14;
+		m_textureY = 3 * 14;
 		if ((this->getPositionX() <= WINDOWWIDTH - 14) && (this->getHindered() != TANK_RIGHT))
 		{
 			setHindered(TANK_STAY);
@@ -252,7 +253,7 @@ void Tank::update(float t)
 		}
 		Draw();
 	}
-	m_rect = Rect(this->getPositionX()-length, this->getPositionY()-length, 2 * length, 2 * length); // ¸üÐÂrect
+	m_rect = Rect(this->getPositionX() - length, this->getPositionY() - length, 2 * length, 2 * length); // æ›´æ–°rect
 }
 
 void Tank::Stay(int dir)

@@ -1,30 +1,30 @@
 #include "aStar.h"
 
-//¶¨Òå´ÓOPEN±í²åÈë½Úµãµ½CLOSED±íÖĞµÄº¯Êı£º
-void insertNodeToClosedList(closedList* close, openList* &open)
+//å®šä¹‰ä»OPENè¡¨æ’å…¥èŠ‚ç‚¹åˆ°CLOSEDè¡¨ä¸­çš„å‡½æ•°ï¼š
+void insertNodeToClosedList(closedList* close, openList*& open)
 {
-	//½«½Úµã×´Ì¬ÉèÖÃÎªÔÚCLOSED±íÖĞ
+	//å°†èŠ‚ç‚¹çŠ¶æ€è®¾ç½®ä¸ºåœ¨CLOSEDè¡¨ä¸­
 	if (open->openNode->status != IN_CLOSEDLIST)
 		open->openNode->status = IN_CLOSEDLIST;
-	//Èç¹ûCLOSED±íÎª¿Õ
+	//å¦‚æœCLOSEDè¡¨ä¸ºç©º
 	if (close->closedNode == nullptr)
 	{
-		//½«OPEN±íµÚÒ»¸öÔªËØÖ±½Ó²åÈëCLOSED±í£¬È»ºóÉ¾³ı¸ÃÔªËØ
+		//å°†OPENè¡¨ç¬¬ä¸€ä¸ªå…ƒç´ ç›´æ¥æ’å…¥CLOSEDè¡¨ï¼Œç„¶ååˆ é™¤è¯¥å…ƒç´ 
 		close->closedNode = open->openNode;
 		openList* tempOpen = open;
 		open = open->next;
 		delete tempOpen;
 		return;
 	}
-	//Èç¹ûCLOSED±í²»¿Õ£¬ÏòºóÕÒµ½×îºóÒ»¸öÔªËØ
+	//å¦‚æœCLOSEDè¡¨ä¸ç©ºï¼Œå‘åæ‰¾åˆ°æœ€åä¸€ä¸ªå…ƒç´ 
 	while (close->next != nullptr)
 		close = close->next;
-	//½«OPEN±íµÚÒ»¸öÔªËØ²åÈëCLOSED±íÄ©Î²
+	//å°†OPENè¡¨ç¬¬ä¸€ä¸ªå…ƒç´ æ’å…¥CLOSEDè¡¨æœ«å°¾
 	closedList* tempClose = new closedList;
 	tempClose->closedNode = open->openNode;
 	tempClose->next = nullptr;
 	close->next = tempClose;
-	//OPEN±íÉ¾³ıµÚÒ»¸öÔªËØ
+	//OPENè¡¨åˆ é™¤ç¬¬ä¸€ä¸ªå…ƒç´ 
 	openList* tempOpen = open;
 	open = open->next;
 	delete tempOpen;
@@ -32,64 +32,64 @@ void insertNodeToClosedList(closedList* close, openList* &open)
 
 void calculateValues(mapNode** map, int x, int y, int i, mapNode* node, mapNode* destination)
 {
-	//ÈôÑØ¶Ô½ÇÏßÒÆ¶¯£¬gÖµÔö¼Ó1.4¸öµ¥Î»±ß³¤£¬·ñÔògÖµÔö¼Ó1¸öµ¥Î»±ß³¤
+	//è‹¥æ²¿å¯¹è§’çº¿ç§»åŠ¨ï¼Œgå€¼å¢åŠ 1.4ä¸ªå•ä½è¾¹é•¿ï¼Œå¦åˆ™gå€¼å¢åŠ 1ä¸ªå•ä½è¾¹é•¿
 	if (i == 0 || i == 2 || i == 5 || i == 7)
-		map[x][y].gValue = node->gValue + 1.4*UNIT;
+		map[x][y].gValue = node->gValue + 1.4 * UNIT;
 	else
 		map[x][y].gValue = node->gValue + UNIT;
-	//hÖµÎª¸ÃÏàÁÚ½ÚµãÑØË®Æ½¡¢ÊúÖ±·½ÏòÒÆ¶¯µ½ÖÕµãµÄ¾àÀë
-	map[x][y].hValue = (abs(destination->xCoordinate - x) + abs(destination->yCoordinate - y))*UNIT;
+	//hå€¼ä¸ºè¯¥ç›¸é‚»èŠ‚ç‚¹æ²¿æ°´å¹³ã€ç«–ç›´æ–¹å‘ç§»åŠ¨åˆ°ç»ˆç‚¹çš„è·ç¦»
+	map[x][y].hValue = (abs(destination->xCoordinate - x) + abs(destination->yCoordinate - y)) * UNIT;
 	map[x][y].fValue = map[x][y].gValue + map[x][y].hValue;
 }
 
 void insertToOpenList(openList* open, mapNode* node)
 {
-	//Èôµ±Ç°½Úµã²»ÊÇÆğµã£¬½«×´Ì¬ÉèÖÃÎªÔÚOPEN±íÖĞ
+	//è‹¥å½“å‰èŠ‚ç‚¹ä¸æ˜¯èµ·ç‚¹ï¼Œå°†çŠ¶æ€è®¾ç½®ä¸ºåœ¨OPENè¡¨ä¸­
 	if (node->status != DESTINATION)
 	{
 		node->status = IN_OPENLIST;
 	}
-	//ĞÂ½¨Ò»¸öopenListÔªËØ
+	//æ–°å»ºä¸€ä¸ªopenListå…ƒç´ 
 	openList* tempOpen = new openList;
 	tempOpen->next = nullptr;
 	tempOpen->openNode = node;
-	//´ÓOPEN±íÍ·¿ªÊ¼Ñ°ÕÒ
+	//ä»OPENè¡¨å¤´å¼€å§‹å¯»æ‰¾
 	while (open->next != nullptr)
 	{
-		//Èôµ±Ç°½ÚµãfÖµĞ¡ÓÚ±íÖĞÔªËØµÄfÖµ
+		//è‹¥å½“å‰èŠ‚ç‚¹få€¼å°äºè¡¨ä¸­å…ƒç´ çš„få€¼
 		if (node->fValue < open->next->openNode->fValue)
 		{
-			//½«ĞÂ½¨ÔªËØ²åÈëµ½±íÖĞÔªËØÖ®Ç°
+			//å°†æ–°å»ºå…ƒç´ æ’å…¥åˆ°è¡¨ä¸­å…ƒç´ ä¹‹å‰
 			openList* tempAdd = open->next;
 			tempOpen->next = tempAdd;
 			open->next = tempOpen;
 			break;
 		}
-		//Èô²»Ğ¡ÓÚ£¬Ôò¼ÌĞøÏòºóÑ°ÕÒ
+		//è‹¥ä¸å°äºï¼Œåˆ™ç»§ç»­å‘åå¯»æ‰¾
 		else
 			open = open->next;
 	}
-	//ÈôÎ´ÕÒµ½£¬Ôò½«ĞÂ½¨ÔªËØ²åÈëµ½OPEN±íÄ©Î²
+	//è‹¥æœªæ‰¾åˆ°ï¼Œåˆ™å°†æ–°å»ºå…ƒç´ æ’å…¥åˆ°OPENè¡¨æœ«å°¾
 	open->next = tempOpen;
 }
 
-bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode * node)
+bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode* node)
 {
-	//ÈôÑØ¶Ô½ÇÏßÒÆ¶¯
+	//è‹¥æ²¿å¯¹è§’çº¿ç§»åŠ¨
 	if (i == 0 || i == 2 || i == 5 || i == 7)
 	{
-		//ÈôÏàÁÚ½ÚµãgÖµ´óÓÚµ±Ç°½ÚµãgÖµ³¬¹ı1.4¸öµ¥Î»
-		if (map[x][y].gValue> node->gValue + 1.4*UNIT)
+		//è‹¥ç›¸é‚»èŠ‚ç‚¹gå€¼å¤§äºå½“å‰èŠ‚ç‚¹gå€¼è¶…è¿‡1.4ä¸ªå•ä½
+		if (map[x][y].gValue > node->gValue + 1.4 * UNIT)
 		{
-			//ÉèÖÃµ±Ç°½ÚµãÎª¸¸½Úµã
+			//è®¾ç½®å½“å‰èŠ‚ç‚¹ä¸ºçˆ¶èŠ‚ç‚¹
 			map[x][y].parent = node;
-			//ĞŞ¸Ä½ÚµãµÄg£¬fÖµ£¬hÖµ²»±ä
-			map[x][y].gValue = node->gValue + 1.4*UNIT;
+			//ä¿®æ”¹èŠ‚ç‚¹çš„gï¼Œfå€¼ï¼Œhå€¼ä¸å˜
+			map[x][y].gValue = node->gValue + 1.4 * UNIT;
 			map[x][y].fValue = map[x][y].gValue + map[x][y].hValue;
 		}
 		return true;
 	}
-	//ÈôÑØË®Æ½¡¢´¹Ö±·½ÏòÒÆ¶¯£¬Í¬Àí
+	//è‹¥æ²¿æ°´å¹³ã€å‚ç›´æ–¹å‘ç§»åŠ¨ï¼ŒåŒç†
 	else
 	{
 		if (map[x][y].gValue > node->gValue + UNIT)
@@ -104,17 +104,17 @@ bool ifChangeParent(mapNode** map, int x, int y, int i, mapNode * node)
 }
 
 
-//¶¨Òå¼ìÑéµ±Ç°½ÚµãÏàÁÚ8¸ö·½ÏòµÄ½ÚµãµÄº¯Êı
+//å®šä¹‰æ£€éªŒå½“å‰èŠ‚ç‚¹ç›¸é‚»8ä¸ªæ–¹å‘çš„èŠ‚ç‚¹çš„å‡½æ•°
 bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode* destination)
 {
-	//¶¨Òåµ±Ç°½ÚµãÏàÁÚ8¸ö·½ÏòµÄ×ø±ê±ä»¯
+	//å®šä¹‰å½“å‰èŠ‚ç‚¹ç›¸é‚»8ä¸ªæ–¹å‘çš„åæ ‡å˜åŒ–
 	const int neighborDirection[8][2] = { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 }, { 1, 0 }, { 1, 1 } };
-	for (int i = 0; i<8; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		if (i == 0 || i == 2 || i == 5 || i == 7) {
 			continue;
 		}
-		//µÃµ½ÏàÁÚ½ÚµãµÄx£¬y×ø±ê
+		//å¾—åˆ°ç›¸é‚»èŠ‚ç‚¹çš„xï¼Œyåæ ‡
 		int neighborX = node->xCoordinate + neighborDirection[i][0];
 		int neighborY = node->yCoordinate + neighborDirection[i][1];
 		bool flag = (map[neighborX][neighborY].status != NOT_ACCESS);
@@ -122,7 +122,7 @@ bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode
 			if (j == 0 || j == 2 || j == 5 || j == 7) {
 				continue;
 			}
-			//µÃµ½ÏàÁÚ½ÚµãµÄx£¬y×ø±ê
+			//å¾—åˆ°ç›¸é‚»èŠ‚ç‚¹çš„xï¼Œyåæ ‡
 			int neighborX2 = neighborX + neighborDirection[j][0];
 			int neighborY2 = neighborY + neighborDirection[j][1];
 			if (map[neighborX2][neighborY2].status == NOT_ACCESS) {
@@ -130,24 +130,24 @@ bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode
 				break;
 			}
 		}
-		//ÈôÏàÁÚ½ÚµãÎ»ÓÚµØÍ¼Ö®Íâ¡¢»ò²»¿Éµ½´ï¡¢»òÒÑÔÚCOLSED±íÖĞÔò²»¿¼ÂÇ		
-		if (neighborX >= 0 && neighborY >= 0 && neighborX <MAP_WIDTH && neighborY <MAP_HEIGHT
-			&&flag
-			&&map[neighborX][neighborY].status != IN_CLOSEDLIST)
+		//è‹¥ç›¸é‚»èŠ‚ç‚¹ä½äºåœ°å›¾ä¹‹å¤–ã€æˆ–ä¸å¯åˆ°è¾¾ã€æˆ–å·²åœ¨COLSEDè¡¨ä¸­åˆ™ä¸è€ƒè™‘		
+		if (neighborX >= 0 && neighborY >= 0 && neighborX < MAP_WIDTH && neighborY < MAP_HEIGHT
+			&& flag
+			&& map[neighborX][neighborY].status != IN_CLOSEDLIST)
 		{
 
-			//ÈôÏàÁÚ½ÚµãÒÑÔÚOPEN±íÖĞ
+			//è‹¥ç›¸é‚»èŠ‚ç‚¹å·²åœ¨OPENè¡¨ä¸­
 			if (map[neighborX][neighborY].status == IN_OPENLIST)
-				//ÅĞ¶ÏÊÇ·ñÓĞ¸üĞ¡µÄgÖµ£¬ÓĞÔò¸Ä±ä¸¸½Úµã
+				//åˆ¤æ–­æ˜¯å¦æœ‰æ›´å°çš„gå€¼ï¼Œæœ‰åˆ™æ”¹å˜çˆ¶èŠ‚ç‚¹
 				ifChangeParent(map, neighborX, neighborY, i, node);
-			//ÈôÏàÁÚ½ÚµãÎª¿Éµ½´ï
+			//è‹¥ç›¸é‚»èŠ‚ç‚¹ä¸ºå¯åˆ°è¾¾
 			else
 			{
-				//½«µ±Ç°½ÚµãÉèÎªÆä¸¸½Úµã
+				//å°†å½“å‰èŠ‚ç‚¹è®¾ä¸ºå…¶çˆ¶èŠ‚ç‚¹
 				map[neighborX][neighborY].parent = node;
-				//¼ÆËã¸ÃÏàÁÚ½ÚµãµÄf£¬g£¬hÖµ
+				//è®¡ç®—è¯¥ç›¸é‚»èŠ‚ç‚¹çš„fï¼Œgï¼Œhå€¼
 				calculateValues(map, neighborX, neighborY, i, node, destination);
-				//½«¸ÃÏàÁÚ½Úµã²åÈëOPEN±í
+				//å°†è¯¥ç›¸é‚»èŠ‚ç‚¹æ’å…¥OPENè¡¨
 				insertToOpenList(open, &map[neighborX][neighborY]);
 			}
 		}

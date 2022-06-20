@@ -1,30 +1,83 @@
 #ifndef __GAME_CLIENT_H__
 #define __GAME_CLIENT_H__
 
-#include "cocos2d.h"
 #include "Tank.h"
 #include "Brick.h"
 #include "aStar.h"
 #include "ui/CocosGUI.h"
+#include "cocos2d.h"
 #include "SimpleAudioEngine.h"
+#include "Global.h"
+#include "cocos-ext.h"
+#include "Ranklist.h"
+USING_NS_CC;
+USING_NS_CC_EXT;
+using namespace cocos2d;
+using namespace cocos2d::ui;
 using namespace CocosDenshion;
 
-#define OCEAN_ID 7
-#define BRICK_ID 1
-#define BLOCK_ID 3
-#define FOREST_ID 5
+//åœ°å½¢ID
+#define OCEAN_ID 7 //æµ·æ´‹
+#define BRICK_ID 1	//çº¢å¢™
+#define BLOCK_ID 3	//ç™½å¢™
+#define FOREST_ID 5	//æ£®æ—
+#define ENEMY_POINT_ID 18 //æ•Œæ–¹å‡ºç”Ÿç‚¹
+#define MY_POINT_ID 20	//æˆ‘æ–¹å‡ºç”Ÿç‚¹
+#define BASE_ID 80  //åŸºåœ°
+
 #define NONE 0
 
-#define MY_TANK_ID 110
+#define MY_TANK_ID 110 //ç©å®¶å¦å…‹ID
+#define ENEMY_TANK_ID 220	//æˆ‘æ–¹å¦å…‹ID
 
 USING_NS_CC;
 using namespace cocos2d;
 
-static int tankcount = 0;     // ¼ÇÂ¼µ±Ç°Ì¹¿ËÊı
-static int NET_TAG = 11111;   
 
 class GameClient : public Scene
 {
+private:
+	Vector<Brick*>  m_bgList;     // èƒŒæ™¯å—åˆ—è¡¨
+	Vector<Tank*>   m_tankList;   // å¦å…‹åˆ—è¡¨
+	Tank* m_tank;       // ä¸»å¦å…‹
+
+	Vector<Tank*>   m_shouldFireList;     // è®°å½•éœ€è¦å¼€ç«çš„å¦å…‹ - å¤„ç†æ¥æ”¶åˆ°å¼€ç«æ¶ˆæ¯çš„å¦å…‹
+
+	Vector<Bullet*> m_deleteBulletList;   // åˆ é™¤å­å¼¹åˆ—è¡¨
+	Vector<Brick*>  m_deleteBrickList;    // åˆ é™¤ç –å—åˆ—è¡¨
+	Vector<Tank*>   m_deleteTankList;     // åˆ é™¤å¦å…‹åˆ—è¡¨
+	Size tileSize, visibleSize;
+	TMXLayer* map_layer;
+
+	//å¯»è·¯èµ·ç‚¹æŒ‡é’ˆ
+	mapNode* m_origin;
+	//å¯»è·¯ç»ˆç‚¹æŒ‡é’ˆ
+	mapNode* m_destination;
+	//åœ°å›¾æ•°ç»„æŒ‡é’ˆ
+	mapNode** m_map;
+
+	int set_convey = 0, can_convey = 0;
+	Vec2 convey_p;
+
+	int attend_enemy = 3, all_enemy = 5;//åœ¨åœºæ•Œäººæ•°,æ‰€æœ‰æ•Œäººæ•°
+	int max_num = 5;//ç©å®¶ç”Ÿå‘½
+	int play_rank = 1;//ç©å®¶å¦å…‹ç­‰çº§
+
+	Tank* *enemy = new Tank*[attend_enemy];
+
+	Vec2 enemy_point[3];//æ•Œæ–¹å‡ºç”Ÿç‚¹
+	Vec2 my_point;//æˆ‘æ–¹å‡ºç”Ÿç‚¹
+	Vec2 my_base;//åŸºåœ°
+	bool pau=false;
+	
+	
+	//ç»˜åˆ¶è·¯å¾„çš„ç»˜å›¾èŠ‚ç‚¹å¯¹è±¡
+	DrawNode* m_draw;
+
+	//è®¡åˆ†æ¿
+	Label *scoreboard=nullptr;
+	
+
 public:
 	GameClient();
 	~GameClient();
@@ -36,189 +89,34 @@ public:
 	void update(float delta);
 	void drawBigBG(Vec2 position);
 
-	// ¶ÔÍøÂç´«À´µÄÏûÏ¢×÷³öÏìÓ¦
-	void addTank(int id, float x, float y, int dir, int kind);
-	void addFire(Tank* tank);
+	void addEnemy(int k);
+	void addFire(float t);//æ•Œäººå¦å…‹å‘å°„ç‚®å¼¹
 
-	// ÊµÏÖ¼üÅÌ»Øµ÷
+	// å®ç°é”®ç›˜å›è°ƒ
 	void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
-	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event); 
+	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event);
 
 	// get
 	Tank* getTank() { return m_tank; };
 	Vector<Tank*> getTankList() { return m_tankList; };
-	//»æÖÆÂ·¾¶µÄ»æÍ¼½Úµã¶ÔÏó
-	DrawNode* m_draw;
-private:
-	Vector<Brick*>  m_bgList;     // ±³¾°¿éÁĞ±í
-	Vector<Tank*>   m_tankList;   // Ì¹¿ËÁĞ±í
-	Tank*           m_tank;       // Ö÷Ì¹¿Ë
-	Vector<Tank*>	m_drawList;   // ÒÑ»æÖÆµÄÌ¹¿Ë
 	
-	Tank*           m_maxTank[50];        // ÔÊĞíÁ´½Ó¿Í»§Êı
-	Vector<Tank*>   m_shouldFireList;     // ¼ÇÂ¼ĞèÒª¿ª»ğµÄÌ¹¿Ë - ´¦Àí½ÓÊÕµ½¿ª»ğÏûÏ¢µÄÌ¹¿Ë
+	//é¼ æ ‡ç¬ç§»
+	void onMouseUp(Event* event);
+	//åˆå§‹åŒ–åœ°å›¾
+	void initMap();
+	//a*å¯»è·¯
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id);
+	void moveOnPath(mapNode* tempNode, int tag_id);
+	void updatePath(float dt);
 
-	Vector<Bullet*> m_deleteBulletList;   // É¾³ı×Óµ¯ÁĞ±í
-	Vector<Brick*>  m_deleteBrickList;    // É¾³ı×©¿éÁĞ±í
-	Vector<Tank*>   m_deleteTankList;     // É¾³ıÌ¹¿ËÁĞ±í
-	Size tileSize,visibleSize;
-	TMXLayer* map_layer;
-	int set_convey=0,can_convey = 0;
-	Vec2 convey_p;
-	void onMouseUp(Event *event) {
-		EventMouse* e = (EventMouse*)event;
-		convey_p.x =e->getCursorX();
-		convey_p.y = e->getCursorY();
-		set_convey = 1;
-	}
+	//æˆ‘æ–¹å¦å…‹å…¨éƒ¨æ­»äº¡åå¯ä»¥è¿›æ”»åŸºåœ°
+	void attackBase();
+	void gameOver();
 
-	int max_num = 1;
+	//æäº¤
+	void GameClient::menuSubmitCallback(Ref* pSender);
 
-	mapNode **m_map;
-	void initMap() {
-		//¸ù¾İµØÍ¼¿í¡¢¸ß·ÖÅäÊı×é¿Õ¼ä
-		m_map = new mapNode*[MAP_WIDTH];
-		for (int n = 0; n < MAP_WIDTH; n++)
-			m_map[n] = new mapNode[MAP_HEIGHT];
-		vector<int> not_access_gid = {BRICK_ID,BLOCK_ID,OCEAN_ID};
-		//ÒÀ´ÎÉ¨ÃèµØÍ¼Êı×éÃ¿Ò»¸öµ¥Ôª
-		for (int i = 0; i < MAP_WIDTH; i++)
-		{
-			for (int j = 0; j < MAP_HEIGHT; j++)
-			{
-				//Èôµ±Ç°Î»ÖÃÎªÇ½ÌåÍßÆ¬ÉèÖÃÎª²»¿ÉÍ¨¹ı
-				bool flag = true;
-				for (int id : not_access_gid) {
-					if (map_layer->getTileGIDAt(Vec2(i, j)) == id) {
-						flag = false;
-						break;
-					}
-				}
-				if (!flag)
-				{
-					mapNode temp = { NOT_ACCESS, i, j, 0, 0, 0, nullptr };
-					m_map[i][j] = temp;
-				}
 
-				//·ñÔòÉèÖÃÎª¿ÉÒÔÍ¨¹ı
-				else
-				{
-					mapNode temp = { ACCESS, i, j, 0, 0, 0, nullptr };
-					m_map[i][j] = temp;
-				}
-			}
-		}
-	}
-	int aStar(mapNode** map, mapNode* origin, mapNode* destination,int tag_id)
-	{
-		if (origin == destination) {
-			return 0;
-		}
-		openList* open = new openList;
-		open->next = nullptr;
-		open->openNode = origin;
-		closedList* close = new closedList;
-		close->next = nullptr;
-		close->closedNode = nullptr;
-		//Ñ­»·¼ìÑé8¸ö·½ÏòµÄÏàÁÚ½Úµã
-		while (checkNeighboringNodes(map, open, open->openNode, destination))
-		{
-			//´ÓOPEN±íÖĞÑ¡È¡½Úµã²åÈëCLOSED±í
-			insertNodeToClosedList(close, open);
-			//ÈôOPEN±íÎª¿Õ£¬±íÃ÷Ñ°Â·Ê§°Ü
-			if (open == nullptr)
-			{
-				break;
-			}
-			//ÈôÖÕµãÔÚOPEN±íÖĞ£¬±íÃ÷Ñ°Â·³É¹¦
-			if (open->openNode->status == DESTINATION)
-			{
-				mapNode* tempNode = open->openNode;
-				//µ÷ÓÃmoveOnPath£¨£©º¯Êı¿ØÖÆ¾«ÁéÔÚÂ·¾¶ÉÏÒÆ¶¯
-				moveOnPath(tempNode,tag_id);
-				break;
-			}
-		}
-		return 0;
-	}
-	void moveOnPath(mapNode* tempNode,int tag_id)
-	{
-		//ÉùÃ÷´æ´¢Â·¾¶×ø±êµÄ½á¹¹Ìå
-		struct pathCoordinate { int x; int y; };
-		//·ÖÅäÂ·¾¶×ø±ê½á¹¹ÌåÊı×é
-		pathCoordinate* path = new pathCoordinate[MAP_WIDTH*MAP_HEIGHT];
-		//ÀûÓÃ¸¸½ÚµãĞÅÏ¢ÄæĞò´æ´¢Â·¾¶×ø±ê
-		int loopNum = 0;
-		while (tempNode != nullptr)
-		{
-			path[loopNum].x = tempNode->xCoordinate;
-			path[loopNum].y = tempNode->yCoordinate;
-			loopNum++;
-			tempNode = tempNode->parent;
-		}
-		//½«Ğ¦Á³¾«ÁéµÄ×ø±ê´æÎª»æÖÆÏß¶ÎÆğµã
-		auto smile = this->getChildByTag(tag_id);
-		smile->stopAllActions();
-		int fromX = smile->getPositionX();
-		int fromY = smile->getPositionY();
-		//ÉùÃ÷¶¯×÷ÏòÁ¿´æ´¢¶¯×÷ĞòÁĞ
-		Vector<FiniteTimeAction*> actionVector;
-		//´Ó½á¹¹ÌåÊı×éÎ²²¿¿ªÊ¼É¨Ãè
-		for (int j = loopNum - 2; j >= 0; j--)
-		{
-			//½«µØÍ¼Êı×é×ø±ê×ª»¯ÎªÆÁÄ»Êµ¼Ê×ø±ê
-			int realX = (path[j].x + 0.5)*UNIT;
-			int realY = visibleSize.height - (path[j].y + 0.5)*UNIT;
-			//´´½¨ÒÆ¶¯¶¯×÷²¢´æÈë¶¯×÷ÏòÁ¿
-			auto moveAction = MoveTo::create(0.2, Vec2(realX, realY));
-			actionVector.pushBack(moveAction);
-			//»æÖÆ´ÓÆğµãµ½ÏÂÒ»¸öµØÍ¼µ¥ÔªµÄÏß¶Î
-			m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
-			//½«µ±Ç°×ø±ê±£´æÎªÏÂÒ»´Î»æÖÆµÄÆğµã
-			fromX = realX;
-			fromY = realY;
-		}
-		//´´½¨¶¯×÷ĞòÁĞ
-		auto actionSequence = Sequence::create(actionVector);
-		//Ğ¦Á³¾«ÁéÖ´ĞĞÒÆ¶¯¶¯×÷ĞòÁĞ
-
-		smile->runAction(actionSequence);
-
-	}
-	void updatePath(float dt) {
-		auto nowTank = m_tank;
-		int x = nowTank->getPositionX() / tileSize.width;
-		int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
-		int tmp = m_map[x][y].status;
-		m_map[x][y].status = DESTINATION;
-		auto m_dest = &m_map[x][y];
-		for (int i = 0; i < m_tankList.size(); i++) {
-			auto nowTank = m_tankList.at(i);
-			if (nowTank->tank_kind == 1) {
-				int x = nowTank->getPositionX() / tileSize.width;
-				int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
-				int tmp = m_map[x][y].status;
-				m_map[x][y].status = ORIGIN;
-				m_map[x][y].parent = nullptr;
-				auto m_ori = &m_map[x][y];
-				aStar(m_map, m_ori, m_dest,nowTank->tag_id);
-				m_map[x][y].status = tmp;
-			}
-		}
-		m_map[x][y].status = tmp;
-	}
-	void enermy_shoot(float dt) {
-		auto nowTank = m_tank;
-		int x_t = nowTank->getPositionX() / tileSize.width;
-		int y_t = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
-		for (int i = 0; i < m_tankList.size(); i++) {
-			auto nowTank = m_tankList.at(i);
-			if (nowTank->tank_kind == 1) {
-				int x = nowTank->getPositionX() / tileSize.width;
-				int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
-			}
-		}
-	}
 };
-
+static Player player;
 #endif

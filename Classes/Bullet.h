@@ -4,10 +4,10 @@
 #include "BaseObject.h"
 #include "Global.h"
 
-#define BULLET_UP      1	  // BULLETÏòÉÏ×´Ì¬
-#define BULLET_DOWN    2      // BULLETÏòÏÂ×´Ì¬
-#define BULLET_LEFT    3      // BULLETÏò×ó×´Ì¬
-#define BULLET_RIGHT   4      // BULLETÏòÓÒ×´Ì¬
+#define BULLET_UP      1	  // BULLETå‘ä¸ŠçŠ¶æ€
+#define BULLET_DOWN    2      // BULLETå‘ä¸‹çŠ¶æ€
+#define BULLET_LEFT    3      // BULLETå‘å·¦çŠ¶æ€
+#define BULLET_RIGHT   4      // BULLETå‘å³çŠ¶æ€
 enum BulletType
 {
 	NORMAL,
@@ -20,21 +20,21 @@ public:
 	~Bullet();
 	static Bullet* create(Vec2 position, float speed, int dir);
 
-	// ±¬Õ¨Ê±ÒÑ×Ô¶¯ÉèÖÃlifeÎª0
-	void Blast();    
+	// çˆ†ç‚¸æ—¶å·²è‡ªåŠ¨è®¾ç½®lifeä¸º0
+	void Blast();
 
 	Rect getRect() { return m_rect; };
 	BulletType type = NORMAL;
 	int hit_count = 0;
 private:
-	virtual bool init(Vec2 position, float speed, int dir,BulletType type=NORMAL);
+	virtual bool init(Vec2 position, float speed, int dir, BulletType type = NORMAL);
 	void update(float delta);
 	void deleteObj(Sprite* obj);
 
 private:
-	Sprite*     m_sprite;       // Í¼Æ¬¾«Áé
-	Texture2D*  m_texture;      // ÎÄÀí
-	Rect        m_rect;			// Åö×²¾ØĞÎ
+	Sprite* m_sprite;       // å›¾ç‰‡ç²¾çµ
+	Texture2D* m_texture;      // æ–‡ç†
+	Rect        m_rect;			// ç¢°æ’çŸ©å½¢
 };
 
 #endif
