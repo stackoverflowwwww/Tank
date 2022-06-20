@@ -1,0 +1,113 @@
+#ifndef __GAME_CLIENT_H__
+#define __GAME_CLIENT_H__
+
+#include "Tank.h"
+#include "Brick.h"
+#include "aStar.h"
+#include "Global.h"
+
+//地形ID
+#define OCEAN_ID 7 //海洋
+#define BRICK_ID 1	//红墙
+#define BLOCK_ID 3	//白墙
+#define FOREST_ID 5	//森林
+#define ENEMY_POINT_ID 18 //敌方出生点
+#define MY_POINT_ID 20	//我方出生点
+#define BASE_ID 80  //基地
+
+#define NONE 0
+
+#define MY_TANK_ID 110 //玩家坦克ID
+#define ENEMY_TANK_ID 220	//我方坦克ID
+
+USING_NS_CC;
+using namespace cocos2d;
+
+
+class GameClient : public Scene
+{
+private:
+	Vector<Brick*>  m_bgList;     // 背景块列表
+	Vector<Tank*>   m_tankList;   // 坦克列表
+	Tank* m_tank;       // 主坦克
+
+	Vector<Tank*>   m_shouldFireList;     // 记录需要开火的坦克 - 处理接收到开火消息的坦克
+
+	Vector<Bullet*> m_deleteBulletList;   // 删除子弹列表
+	Vector<Brick*>  m_deleteBrickList;    // 删除砖块列表
+	Vector<Tank*>   m_deleteTankList;     // 删除坦克列表
+	Size tileSize, visibleSize;
+	TMXLayer* map_layer;
+
+	//寻路起点指针
+	mapNode* m_origin;
+	//寻路终点指针
+	mapNode* m_destination;
+	//地图数组指针
+	mapNode** m_map;
+
+	int set_convey = 0, can_convey = 0;
+	Vec2 convey_p;
+
+	int attend_enemy = 3, all_enemy = 5;//在场敌人数,所有敌人数
+	int max_num = 5;//玩家生命
+	int play_rank = 1;//玩家坦克等级
+
+	Tank* *enemy = new Tank*[attend_enemy];
+
+	Vec2 enemy_point[3];//敌方出生点
+	Vec2 my_point;//我方出生点
+	Vec2 my_base;//基地
+	bool pau=false;
+	
+	
+	//绘制路径的绘图节点对象
+	DrawNode* m_draw;
+
+	//计分板
+	Label *scoreboard=nullptr;
+	
+public:
+	GameClient();
+	~GameClient();
+
+	CREATE_FUNC(GameClient);
+	virtual bool init();
+	static Scene* createScene();
+	void createBackGround();
+	void update(float delta);
+	void drawBigBG(Vec2 position);
+
+	void addEnemy(int k);
+	void addFire(float t);//敌人坦克发射炮弹
+
+	// 实现键盘回调
+	void onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event);
+	void onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event);
+
+	// get
+	Tank* getTank() { return m_tank; };
+	Vector<Tank*> getTankList() { return m_tankList; };
+	
+	//鼠标瞬移
+	void onMouseUp(Event* event);
+	//初始化地图
+	void initMap();
+	//a*寻路
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id);
+	void moveOnPath(mapNode* tempNode, int tag_id);
+	void updatePath(float dt);
+
+	//我方坦克全部死亡后可以进攻基地
+	void attackBase();
+	void gameOver();
+
+	//提交
+	void GameClient::menuSubmitCallback(Ref* pSender);
+
+
+};
+static Player player = { "name",0 };
+static std::vector<Player> rankings;
+
+#endif
