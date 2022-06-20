@@ -4,17 +4,7 @@
 #include "Tank.h"
 #include "Brick.h"
 #include "aStar.h"
-#include "ui/CocosGUI.h"
-#include "cocos2d.h"
-#include "SimpleAudioEngine.h"
 #include "Global.h"
-#include "cocos-ext.h"
-#include "Ranklist.h"
-USING_NS_CC;
-USING_NS_CC_EXT;
-using namespace cocos2d;
-using namespace cocos2d::ui;
-using namespace CocosDenshion;
 
 //地形ID
 #define OCEAN_ID 7 //海洋
@@ -59,29 +49,27 @@ private:
 	int set_convey = 0, can_convey = 0;
 	Vec2 convey_p;
 
-	int attend_enemy = 3, all_enemy = 5;//在场敌人数,所有敌人数
+	int attend_enemy = 1, all_enemy = 1;//在场敌人数,所有敌人数
 	int max_num = 5;//玩家生命
 	int play_rank = 1;//玩家坦克等级
 
-	Tank* *enemy = new Tank*[attend_enemy];
+	Tank** enemy = new Tank * [attend_enemy];
 
 	Vec2 enemy_point[3];//敌方出生点
 	Vec2 my_point;//我方出生点
 	Vec2 my_base;//基地
-	bool pau=false;
-	
-	
+	bool pau = false;
+
+
 	//绘制路径的绘图节点对象
 	DrawNode* m_draw;
 
 	//计分板
-	Label *scoreboard=nullptr;
-	
-
+	Label* scoreboard = nullptr;
+	ImageView* imageView;
 public:
 	GameClient();
 	~GameClient();
-
 	CREATE_FUNC(GameClient);
 	virtual bool init();
 	static Scene* createScene();
@@ -99,7 +87,7 @@ public:
 	// get
 	Tank* getTank() { return m_tank; };
 	Vector<Tank*> getTankList() { return m_tankList; };
-	
+
 	//鼠标瞬移
 	void onMouseUp(Event* event);
 	//初始化地图
@@ -112,11 +100,19 @@ public:
 	//我方坦克全部死亡后可以进攻基地
 	void attackBase();
 	void gameOver();
-
-	//提交
-	void GameClient::menuSubmitCallback(Ref* pSender);
-
+	void success() {
+		Director::getInstance()->pause();
+		auto tips = Label::createWithBMFont("fonts/futura-48.fnt", "Success!");
+		tips->setColor(Color3B(0, 0, 1));
+		Size visibleSize = Director::getInstance()->getVisibleSize();
+		tips->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
+		this->addChild(tips, 10);
+	}
+	
+	void GameClient::onClick(Ref* pSender, cocos2d::ui::Widget::TouchEventType type);
 
 };
-static Player player;
+static Player player = { "name",0 };
+static std::vector<Player> rankings;
+
 #endif

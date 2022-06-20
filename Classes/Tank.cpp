@@ -282,5 +282,6 @@ void Tank::Stay(int dir)
 void Tank::deleteObj(Sprite* obj)
 {
 	obj->removeFromParent();
-	this->removeFromParent();
+	is_remove = 1;
+	//this->removeFromParent();
 }

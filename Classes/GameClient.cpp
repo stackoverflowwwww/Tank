@@ -1,4 +1,7 @@
 #include "GameClient.h"
+using namespace std;
+int level_num = 3;
+int current_level = 1;
 
 GameClient::GameClient()
 {}
@@ -40,16 +43,18 @@ bool GameClient::init()
 	//m_draw->drawCircle(Vec2(100, 200), 10, 360, 1, true, c2);
 
 	//this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
+
 	// 碰撞检测
 
 	//添加关卡提示
-	Label* label = Label::createWithBMFont("fonts/futura-48.fnt", "The First Pass");
+	vector<string> levels = { "First","Second","Third" };
+	Label* label = Label::createWithBMFont("fonts/futura-48.fnt", "The "+levels[current_level-1]+" Pass");
 	//Label* label = Label::createWithBMFont("fonts/futura-48.fnt", myWrap("Enemy:" + std::to_string(all_enemy) + "MyLife:" + std::to_string(max_num) + "Score:" + std::to_string(player.score),10));
 
 	label->setColor(cocos2d::Color3B(255, 255, 255));
 	label->setPosition(Vec2(visibleSize.width / 2 - label->getWidth(), visibleSize.height / 2));
 	label->runAction(CCSequence::create(CCDelayTime::create(2), CCFadeOut::create(1), CCRemoveSelf::create(true), NULL));//2秒后消失
-	this->addChild(label, 2);
+	this->addChild(label, 10);
 
 	// 键盘事件
 	auto key_listener = EventListenerKeyboard::create();
@@ -63,6 +68,7 @@ bool GameClient::init()
 
 	// 玩家
 	m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH / 2, 100, 1, 2);
+	//m_tank = Tank::create(MY_TANK_ID, 100, 500, 1, 2);
 
 	this->addChild(m_tank, 1, 1);
 	m_tank->tag_id = MY_TANK_ID;
@@ -76,7 +82,31 @@ bool GameClient::init()
 	scoreboard = Label::createWithBMFont("fonts/futura-48.fnt", theinfo);
 	scoreboard->setScale(0.6);
 	scoreboard->setPosition(Vec2(visibleSize.width / 2, visibleSize.height - scoreboard->getHeight() - 20));
-	this->addChild(scoreboard, 1);
+	this->addChild(scoreboard, 10);
+
+	//获取排行榜
+
+	if (!UserDefault->isXMLFileExist()) {
+		for (int i = 0; i < 3; i++) {
+			UserDefault->setStringForKey(StringUtils::format("p%d_name", i).c_str(), "name");
+			UserDefault->setIntegerForKey(StringUtils::format("p%d_score", i).c_str(), 0);
+			UserDefault->flush();
+
+			// 给数组相应内容赋值
+			//Player tmp_player("name",0 );
+			Player tmp_player = { "name",0 };
+			rankings.push_back(tmp_player);
+		}
+	}
+	else {
+		for (int i = 0; i < 3; i++) {
+			// 获取 XML 内容
+			string s = UserDefault->getStringForKey(StringUtils::format("p%d_name", i).c_str());
+			int sc = UserDefault->getIntegerForKey(StringUtils::format("p%d_score", i).c_str());
+			Player tmp_player = { s,sc };
+			rankings.push_back(tmp_player);
+		}
+	}
 
 	this->scheduleUpdate();
 	return true;
@@ -264,8 +294,8 @@ void GameClient::update(float delta)
 						}
 						else {
 							// 坦克消除并创建新的坦克
-							
-							int level ;
+
+							int level;
 							if (tank->getLevel() < 8) {
 								level = tank->getLevel() + 1;
 							}
@@ -284,7 +314,7 @@ void GameClient::update(float delta)
 
 							int m_textureX = ((tank->getLevel() - 1) * 4 + 1) * 14;
 							int m_textureY = 1 * 14;
-							tank->setTextureRect(Rect(m_textureX - 19.0, m_textureY - 19.0, 28, 28));
+							tank->setTextureRect(Rect(m_textureX - 14.0, m_textureY - 14.0, 24, 24));
 							//tank->setPosition(Vec2(tank->getPosition().x + 1, tank->getPosition().y + 1));
 							m_deleteTankList.pushBack(tank_another);
 
@@ -323,18 +353,24 @@ void GameClient::update(float delta)
 								player.score = player.score + thenum;
 
 
-
+								
 								if (all_enemy > attend_enemy && m_tankList.size() <= 4) {
 									int en = tank_another->tag_id - ENEMY_TANK_ID;
 									addEnemy(en);
 									//this->schedule(schedule_selector(GameClient::updatePath, this), 0.5, kRepeatForever, 0);
 									all_enemy--;
+									if (all_enemy == 0) {
+										gameOver();
+									}
 								}
 								else if (all_enemy == 0) {
 									gameOver();
 								}
 								else {
 									all_enemy--;
+									if (all_enemy == 0) {
+										gameOver();
+									}
 								}
 
 							}
@@ -498,74 +534,43 @@ void GameClient::attackBase() {
 void GameClient::gameOver() {
 	Director::getInstance()->pause();//停止坦克们的动作
 
+	SimpleAudioEngine::getInstance()->playEffect("sound/gameover.wav", false);
 
+	auto test_UI = GUIReader::getInstance()->widgetFromJsonFile("Export/rankings_1/rankings_1.ExportJson");
+	this->addChild(test_UI, 16);
+	imageView = (ImageView*)test_UI->getChildByTag(2);
+	auto replay = (Button*)imageView->getChildByTag(20);
+	replay->addTouchEventListener(CC_CALLBACK_2(GameClient::onClick, this));
 
+	auto firstscore = (TextField*)imageView->getChildByTag(21);
+	firstscore->setString(to_string(rankings[0].score));
+	auto firstname = (TextField*)imageView->getChildByTag(22);
+	firstname->setString(rankings[0].name);
 
-	////添加颜色层
-	//auto colorLayer = LayerColor::create(Color4B(128, 125, 200, 255), 480, visibleSize.height);
-	//colorLayer->setPosition(Vec2(200, 0));
-	//this->addChild(colorLayer);
+	auto secondscore = (TextField*)imageView->getChildByTag(23);
+	secondscore->setString(to_string(rankings[1].score));
+	auto secondname = (TextField*)imageView->getChildByTag(24);
+	secondname->setString(rankings[1].name);
 
-	//ui::ListView* lv = ui::ListView::create();
-	//lv->setDirection(ui::ScrollView::Direction::VERTICAL);//设置方向为垂直方向
-	//lv->setBounceEnabled(true);
-	//lv->setBackGroundImage("white_bg.png");
-	//lv->setBackGroundImageScale9Enabled(true);
-	//lv->setContentSize(Size(300, visibleSize.height));
-	//lv->setAnchorPoint(Vec2(0.5, 0.5));
-	//lv->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 2));
-	//lv->setItemsMargin(10);
-	//colorLayer->addChild(lv);
+	auto thirdscore = (TextField*)imageView->getChildByTag(25);
+	thirdscore->setString(to_string(rankings[2].score));
+	auto thirdname = (TextField*)imageView->getChildByTag(26);
+	thirdname->setString(rankings[2].name);
 
+	auto thescore = (TextField*)imageView->getChildByTag(27);
+	thescore->setString(to_string(player.score));
 
-
-
-	//auto size = Size(300, 100);
-	//for (int i = 0; i < 15; ++i)
-	//{
-	//	auto image = ui::ImageView::create("test.png");
-	//	image->setPosition(Vec2(image->getContentSize().width / 2, size.height / 2));
-
-	//	//listView的item需要用Layout对象
-	//	auto layout = cocos2d::ui::Layout::create();
-
-	//	layout->setBackGroundImageScale9Enabled(true);
-
-
-	//	//或者设计背景色
-	//	//layout->setBackGroundColorType(cocos2d::ui::Layout::BackGroundColorType::SOLID);
-	//	//layout->setBackGroundColor(Color3B(255, 255, 255));
-
-	//	layout->setContentSize(size);
-
-	//	layout->addChild(image);
-	//	lv->addChild(layout);
-
-	//}
-
-
-
-
-	//Director::getInstance()->replaceScene(RankList::createScene());
-
-	auto button = Button::create("Chapter12/tank/replay.png", "Chapter12/tank/replay.png", "Chapter12/tank/replay.png");//添加restart按钮
-	button->setPosition(Vec2(visibleSize.width / 2, visibleSize.height / 8));
-	button->ignoreContentAdaptWithSize(false);
-	button->setContentSize(visibleSize / 5);
-	this->addChild(button, 12);
-	button->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
-		switch (type)
-		{
-		case ui::Widget::TouchEventType::BEGAN:
-			break;
-		case ui::Widget::TouchEventType::ENDED:
-			Director::getInstance()->replaceScene(TransitionSlideInT::create(1, GameClient::createScene()));
-			Director::getInstance()->resume();
-			break;
-		default:
-			break;
-		}
-		});
+	current_level += 1;
+	if (current_level <= level_num) {
+		this->pause();
+		this->unscheduleUpdate();
+		Director::getInstance()->replaceScene(GameClient::create());
+		this->resume();
+		this->scheduleUpdate();
+	}
+	else {
+		success();
+	}
 }
 
 
@@ -692,6 +697,9 @@ void GameClient::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event)
 void GameClient::addFire(float t)
 {
 	for (int i = 0; i < attend_enemy; i++) {
+		if (enemy[i]->is_remove) {
+			continue;
+		}
 		m_shouldFireList.pushBack(enemy[i]);
 	}
 }
@@ -855,6 +863,7 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag_id)
 // 绘制背景地图
 void GameClient::createBackGround()
 {
+	//auto map = TMXTiledMap::create("Chapter12/tank/map"+to_string(current_level)+".tmx");
 	auto map = TMXTiledMap::create("Chapter12/tank/map1.tmx");
 	//map->setPosition(Vec2(22, 8));
 	map_layer = map->getLayer("back");
@@ -871,45 +880,38 @@ void GameClient::createBackGround()
 	this->addChild(baseSprite, 3, BASE_ID);
 }
 
-//void GameClient::menuSubmitCallback(Ref* pSender)
-//{
-//	// 获取提交的成绩
-//	p[max_range].name = textEdit->getString();
-//	p[max_range].score = player.score;
-//
-//	bool isExist = false;
-//	// 玩家是否已经在排行榜
-//	for (int i = 0; i < max_range; i++) {
-//		if (p[i].name == p[max_range].name) {
-//			p[i].score = p[i].score > p[max_range].score ? p[i].score : p[max_range].score;
-//			isExist = true;
-//			break;
-//		}
-//	}
-//
-//	if (!isExist) {
-//		// 排个序（冒泡）
-//		for (int i = 0; i < max_range; i++) {
-//			for (int j = max_range - i; j > 0; j--) {
-//				if (p[j].score > p[j - 1].score) {
-//					Player temp;
-//					temp = p[j];
-//					p[j] = p[j - 1];
-//					p[j - 1] = temp;
-//				}
-//			}
-//		}
-//	}
-//
-//	// 存入XML
-//	for (int i = 1; i <= max_range; i++) {
-//		// 给 XML 相应内容赋值
-//		UD_setString(StringUtils::format("p%d_name", i).c_str(), p[i - 1].name);
-//		UD_setInt(StringUtils::format("p%d_score", i).c_str(), p[i - 1].score);
-//	}
-//}
+void GameClient::onClick(Ref* pSender, cocos2d::ui::Widget::TouchEventType type) {
+	switch (type)
+	{
 
+	case cocos2d::ui::Widget::TouchEventType::ENDED:
+		
+		auto thename = (TextField*)imageView->getChildByTag(11);
+		player.name = thename->getString();
+		cout << player.name << endl;
+		for (int i = 0; i < 3; i++) {
+			if (player.score >= rankings[i].score) {
+				for (int j = 2; j > i; j--) {
+					rankings[j] = rankings[j - 1];
+				}
+				rankings[i] = player;
+			}
+		}
+		for (int i = 0; i < 3; i++) {
+			UserDefault->setStringForKey(StringUtils::format("p%d_name", i).c_str(), rankings[i].name);
+			UserDefault->setIntegerForKey(StringUtils::format("p%d_score", i).c_str(), rankings[i].score);
+			UserDefault->flush();
+		}
+		player.score = 0;
+		player.name = "name";
+		rankings.clear();
+		Director::getInstance()->replaceScene(GameClient::createScene());
+		Director::getInstance()->resume();
+		break;
+		
+	}
 
+}
 
 
 

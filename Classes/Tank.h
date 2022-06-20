@@ -70,6 +70,7 @@ public:
 	int   m_textureY;
 	int length = 16;
 	int tag_id;
+	int is_remove = 0;
 };
 
 #endif

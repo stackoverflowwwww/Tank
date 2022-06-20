@@ -35,15 +35,15 @@ bool HelloScene::init()
 	loadCircle->setPosition(ccp(visibleSize.width / 2, visibleSize.height / 2 + visibleSize.height / 4));
 	loadCircle->setScale(0.5f);
 	this->addChild(loadCircle);
-
-	CCRotateTo* rotateTo = CCRotateTo::create(4,180);
+	float dur = 0.1;
+	CCRotateTo* rotateTo = CCRotateTo::create(dur,180);
 	loadCircle->runAction(CCSequence::create(rotateTo, CCCallFunc::create(this,
 		callfunc_selector(HelloScene::loadsuccess)), NULL));
 
 	loadSprite = CCSprite::create("Chapter12/tank/tank.png");
 	loadSprite->setPosition(ccp(100, visibleSize.height / 4));
 	loadSprite->setScale(0.6);
-	CCMoveTo* moveTo = CCMoveTo::create(4, ccp(1000, visibleSize.height / 4));
+	CCMoveTo* moveTo = CCMoveTo::create(dur, ccp(1000, visibleSize.height / 4));
 
 	loadSprite->runAction(moveTo);
 	this->addChild(loadSprite);

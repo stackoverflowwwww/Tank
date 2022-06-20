@@ -117,6 +117,9 @@ bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode
 		//得到相邻节点的x，y坐标
 		int neighborX = node->xCoordinate + neighborDirection[i][0];
 		int neighborY = node->yCoordinate + neighborDirection[i][1];
+		if (neighborX < 0 || neighborX >= 60 || neighborY < 0 || neighborY >= 40) {
+			continue;
+		}
 		bool flag = (map[neighborX][neighborY].status != NOT_ACCESS);
 		for (int j = 0; j < 8; j++) {
 			if (j == 0 || j == 2 || j == 5 || j == 7) {
@@ -125,6 +128,9 @@ bool checkNeighboringNodes(mapNode** map, openList* open, mapNode* node, mapNode
 			//得到相邻节点的x，y坐标
 			int neighborX2 = neighborX + neighborDirection[j][0];
 			int neighborY2 = neighborY + neighborDirection[j][1];
+			if (neighborX2 < 0 || neighborX2 >= 60 || neighborY2 < 0 || neighborY2 >= 40) {
+				continue;
+			}
 			if (map[neighborX2][neighborY2].status == NOT_ACCESS) {
 				flag = false;
 				break;
