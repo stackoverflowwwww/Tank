@@ -57,7 +57,7 @@ bool Tank::init(int ID, float x, float y, int dir, int kind)
 	}
 
 	// tank initY state
-	m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;
+	m_textureX = ((this->getLevel() - 1) * 2 + 1) * 14;
 	if (dir > 0 && dir < 6 && dir == TANK_UP)
 	{
 		m_textureY = 1 * 14;
@@ -92,6 +92,7 @@ void Tank::MoveUP()
 	m_moveDown = false;
 	m_moveLeft = false;
 	m_moveRight = false;
+	//setHindered(TANK_STAY);
 	setDirection(TANK_UP);
 }
 
@@ -101,7 +102,7 @@ void Tank::MoveDown()
 	m_moveUp = false;
 	m_moveLeft = false;
 	m_moveRight = false;
-
+	//setHindered(TANK_STAY);
 	setDirection(TANK_DOWN);
 }
 
@@ -121,7 +122,7 @@ void Tank::MoveRight()
 	m_moveLeft = false;
 	m_moveUp = false;
 	m_moveDown = false;
-
+	//setHindered(TANK_STAY);
 	setDirection(TANK_RIGHT);
 }
 
@@ -151,8 +152,8 @@ void Tank::Fire()
 void Tank::Draw()
 {
 	if (this->getLife()) {
-		m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;   // get tank textureX
-
+		m_textureX = ((this->getLevel() - 1) * 2 + 1) * 14;   // get tank textureX
+		//m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;   // get tank textureX
 		// 控制坦克履带转动
 		if (m_moveUp || m_moveDown || m_moveLeft || m_moveRight)
 		{
@@ -162,7 +163,7 @@ void Tank::Draw()
 				m_temptime -= 5;
 				m_texchange = (m_texchange + 1) % 2;
 			}
-			switch (m_texchange)
+			/*switch (m_texchange)
 			{
 			case 0:
 				m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14;
@@ -170,7 +171,7 @@ void Tank::Draw()
 			case 1:
 				m_textureX = ((this->getLevel() - 1) * 4 + 1) * 14 + 2 * 14;
 				break;
-			}
+			}*/
 		}
 
 		this->removeChild(m_sprite, true); // 重要：把前一个精灵移除,避免内存无法释放

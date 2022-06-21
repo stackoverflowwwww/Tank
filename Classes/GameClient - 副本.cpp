@@ -1,6 +1,6 @@
 #include "GameClient.h"
 using namespace std;
-int level_num = 3;
+int level_num = 1;
 int current_level = 1;
 
 GameClient::GameClient()
@@ -43,13 +43,12 @@ bool GameClient::init()
 	//m_draw->drawCircle(Vec2(100, 200), 10, 360, 1, true, c2);
 
 	//this->schedule(schedule_selector(GameClient::updatePath, this),0.5, kRepeatForever,0);
-	this->schedule(schedule_selector(GameClient::updatePath2, this), 0.2, kRepeatForever, 0);
 
 	// 碰撞检测
 
 	//添加关卡提示
 	vector<string> levels = { "First","Second","Third" };
-	Label* label = Label::createWithBMFont("fonts/futura-48.fnt", "The " + levels[(current_level - 1)%3] + " Pass");
+	Label* label = Label::createWithBMFont("fonts/futura-48.fnt", "The " + levels[current_level - 1] + " Pass");
 	//Label* label = Label::createWithBMFont("fonts/futura-48.fnt", myWrap("Enemy:" + std::to_string(all_enemy) + "MyLife:" + std::to_string(max_num) + "Score:" + std::to_string(player.score),10));
 
 	label->setColor(cocos2d::Color3B(255, 255, 255));
@@ -68,10 +67,8 @@ bool GameClient::init()
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(mouse_listener, this);
 
 	// 玩家
-	init_x = WINDOWWIDTH / 2;
-	init_y = 140;
-	m_tank = Tank::create(MY_TANK_ID, init_x, init_y, 1, 2);
-	//m_tank = Tank::create(MY_TANK_ID, 100, 500, 1, 2);
+	//m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH / 2, 100, 1, 2);
+	m_tank = Tank::create(MY_TANK_ID, 100, 500, 1, 2);
 
 	this->addChild(m_tank, 1, 1);
 	m_tank->tag_id = MY_TANK_ID;
@@ -175,9 +172,7 @@ void GameClient::update(float delta)
 				}
 			}
 		}
-		//if (type != NONE && nowTank->tank_kind != 1) {
-		if (type != NONE) {
-
+		if (type != NONE && nowTank->tank_kind != 1) {
 			if (type == BRICK_ID || type == BLOCK_ID) {
 				if (nowTank->getDirection() == TANK_UP) {
 					// 方法1：履带持续转动
@@ -212,7 +207,7 @@ void GameClient::update(float delta)
 					}
 					else
 					{
-						gameOver(false);
+						gameOver();
 					}
 					max_num--;
 				}
@@ -266,7 +261,7 @@ void GameClient::update(float delta)
 					// 子弹消除
 				bullet->setLife(0);
 				m_deleteBulletList.pushBack(bullet);
-				//gameOver(false);
+				gameOver();
 
 			}
 
@@ -318,20 +313,14 @@ void GameClient::update(float delta)
 							/*int m_textureX = ((tank->getLevel() - 1) * 4 + 1) * 14;
 							int m_textureY = 1 * 14;
 							tank->setTextureRect(Rect(m_textureX - 14.0, m_textureY - 14.0, 24, 24));*/
-
+							//tank->setPosition(Vec2(tank->getPosition().x + 1, tank->getPosition().y + 1));
 							m_deleteTankList.pushBack(tank_another);
 
 							SimpleAudioEngine::getInstance()->playEffect("sound/explosion.wav", false);
 							if (tank_another->tag_id == MY_TANK_ID) {
-								/*for (int h = 0; h < m_tankList.size(); h++) {
-									auto tmp=m_tankList.at(h);
-									if (tmp->tank_kind == 1) {
-										tmp->action_done = 1;
-									}
-								}*/
 								max_num--;
 								if (max_num > 0) {
-									m_tank = Tank::create(MY_TANK_ID, init_x, init_y, 1, 2);
+									m_tank = Tank::create(MY_TANK_ID, WINDOWWIDTH / 2, 100, 1, 2);
 
 									this->addChild(m_tank, 1, 1);
 									m_tank->tag_id = MY_TANK_ID;
@@ -340,7 +329,7 @@ void GameClient::update(float delta)
 								}
 								else
 								{
-									gameOver(false);
+									gameOver();
 								}
 
 							}
@@ -515,16 +504,12 @@ void GameClient::addEnemy(int k) {
 	int x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
 	int tile_x = x / tileSize.width;
 	int tile_y = (visibleSize.height - y) / tileSize.height;
-	tile_x = tile_x % 60;
-	tile_y = tile_y % 40;
 	int id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
 	while (id != 0)
 	{
 		x = rand() % ((int)WINDOWWIDTH), y = rand() % ((int)WINDOWHEIGHT);
 		tile_x = x / tileSize.width;
 		tile_y = (visibleSize.height - y) / tileSize.height;
-		tile_x = tile_x % 60;
-		tile_y = tile_y % 40;
 		id = map_layer->getTileGIDAt(Vec2(tile_x, tile_y));
 	}
 	enemy[k] = Tank::create(ENEMY_TANK_ID, x, y, 2, 1);
@@ -540,7 +525,7 @@ void GameClient::addEnemy(int k) {
 
 
 
-void GameClient::gameOver(bool is_success) {
+void GameClient::gameOver() {
 	Director::getInstance()->pause();//停止坦克们的动作
 
 	SimpleAudioEngine::getInstance()->playEffect("sound/gameover.wav", false);
@@ -568,12 +553,8 @@ void GameClient::gameOver(bool is_success) {
 
 	auto thescore = (TextField*)imageView->getChildByTag(27);
 	thescore->setString(to_string(player.score));
-	if (is_success) {
-		current_level += 1;
-	}
-	else {
-		current_level = 1;
-	}
+
+	current_level += 1;
 	if (current_level <= level_num) {
 		this->pause();
 		this->unscheduleUpdate();
@@ -766,25 +747,20 @@ void GameClient::updatePath(float dt) {
 		int tmp_ = m_map[x][y].status;
 		m_map[x][y].status = DESTINATION;
 		auto m_dest = &m_map[x][y];
-		m_destination = m_dest;
-		static clock_t begin_ = clock(), end_ = clock();
+
+
 		for (int i = 0; i < m_tankList.size(); i++) {
 			auto nowTank = m_tankList.at(i);
 
 			if (nowTank->tank_kind == 1) {
-				//if (!nowTank->action_done) {
-				//	continue;
-				//}
-				nowTank->action_done = 0;
-				//nowTank->stopActionByTag(ENEMY_TANK_ID);
+				nowTank->stopActionByTag(ENEMY_TANK_ID);
 				int x = nowTank->getPositionX() / tileSize.width;
 				int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
 				int tmp = m_map[x][y].status;
 				m_map[x][y].status = ORIGIN;
 				m_map[x][y].parent = nullptr;
 				auto m_ori = &m_map[x][y];
-				m_origin = m_ori;
-				aStar(m_map, m_ori, m_dest, nowTank->tag_id,nowTank);
+				aStar(m_map, m_ori, m_dest, nowTank->tag_id);
 				m_map[x][y].status = tmp;
 			}
 		}
@@ -793,10 +769,9 @@ void GameClient::updatePath(float dt) {
 
 }
 
-int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id, Tank* tank)
+int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id)
 {
 	if (origin == destination) {
-		tank->action_done = 1;
 		return 0;
 	}
 	openList* open = new openList;
@@ -813,7 +788,6 @@ int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int 
 		//若OPEN表为空，表明寻路失败
 		if (open == nullptr)
 		{
-			tank->action_done = 1;
 			break;
 		}
 		//若终点在OPEN表中，表明寻路成功
@@ -821,13 +795,13 @@ int GameClient::aStar(mapNode** map, mapNode* origin, mapNode* destination, int 
 		{
 			mapNode* tempNode = open->openNode;
 			//调用moveOnPath（）函数控制精灵在路径上移动
-			moveOnPath(tempNode, tag_id,tank);
+			moveOnPath(tempNode, tag_id);
 			break;
 		}
 	}
 	return 0;
 }
-void GameClient::moveOnPath(mapNode* tempNode, int tag_id, Tank* tank)
+void GameClient::moveOnPath(mapNode* tempNode, int tag_id)
 {
 	//声明存储路径坐标的结构体
 	struct pathCoordinate { int x; int y; };
@@ -844,8 +818,7 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag_id, Tank* tank)
 	}
 	//将笑脸精灵的坐标存为绘制线段起点
 	auto smile = this->getChildByTag(tag_id);
-
-	//smile->stopAllActions();
+	smile->stopAllActions();
 	int fromX = smile->getPositionX();
 	int fromY = smile->getPositionY();
 	//声明动作向量存储动作序列
@@ -865,26 +838,14 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag_id, Tank* tank)
 
 
 		//绘制从起点到下一个地图单元的线段
-		m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
+		//m_draw->drawLine(Vec2(fromX, fromY), Vec2(realX, realY), Color4F(1.0, 1.0, 1.0, 1.0));
 
 		//将当前坐标保存为下一次绘制的起点
 		fromX = realX;
 		fromY = realY;
 	}
 	//创建动作序列
-	//auto callback = CallFunc::create([this,tag_id]() {
-	//		Tank* tank=(Tank *)this->getChildByTag(tag_id);
-	//		tank->action_done = 1;
-	//	});
-	//actionVector.pushBack(callback);
-
-	action_doneList.pushBack(tank);
-	auto cb= CallFunc::create(this, callfunc_selector(GameClient::callback));
-	//auto cb = CC_CALLBACK_1(GameClient::callback, this);
-	actionVector.pushBack(cb);
-
 	auto actionSequence = Sequence::create(actionVector);
-	smile->stopAllActions();
 	actionSequence->setTag(ENEMY_TANK_ID);
 	//笑脸精灵执行移动动作序列
 
@@ -895,7 +856,7 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag_id, Tank* tank)
 // 绘制背景地图
 void GameClient::createBackGround()
 {
-	//auto map = TMXTiledMap::create("Chapter12/tank/map"+to_string((current_level-1)%3+1)+".tmx");
+	//auto map = TMXTiledMap::create("Chapter12/tank/map"+to_string(current_level)+".tmx");
 	auto map = TMXTiledMap::create("Chapter12/tank/map1.tmx");
 	//map->setPosition(Vec2(22, 8));
 	map_layer = map->getLayer("back");

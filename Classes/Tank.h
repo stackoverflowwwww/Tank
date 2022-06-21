@@ -71,6 +71,7 @@ public:
 	int length = 16;
 	int tag_id;
 	int is_remove = 0;
+	int action_done = 1;
 };
 
 #endif

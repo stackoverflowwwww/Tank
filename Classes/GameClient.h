@@ -29,6 +29,7 @@ class GameClient : public Scene
 private:
 	Vector<Brick*>  m_bgList;     // 背景块列表
 	Vector<Tank*>   m_tankList;   // 坦克列表
+	Vector<Tank*> action_doneList;
 	Tank* m_tank;       // 主坦克
 
 	Vector<Tank*>   m_shouldFireList;     // 记录需要开火的坦克 - 处理接收到开火消息的坦克
@@ -49,7 +50,7 @@ private:
 	int set_convey = 0, can_convey = 0;
 	Vec2 convey_p;
 
-	int attend_enemy = 1, all_enemy = 1;//在场敌人数,所有敌人数
+	int attend_enemy = 1, all_enemy = 5;//在场敌人数,所有敌人数
 	int max_num = 5;//玩家生命
 	int play_rank = 1;//玩家坦克等级
 
@@ -93,13 +94,13 @@ public:
 	//初始化地图
 	void initMap();
 	//a*寻路
-	int aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id);
-	void moveOnPath(mapNode* tempNode, int tag_id);
+	int aStar(mapNode** map, mapNode* origin, mapNode* destination, int tag_id,Tank* tank);
+	void moveOnPath(mapNode* tempNode, int tag_id,Tank* tank);
 	void updatePath(float dt);
 
 	//我方坦克全部死亡后可以进攻基地
 	void attackBase();
-	void gameOver();
+	void gameOver(bool is_success=true);
 	void success() {
 		Director::getInstance()->pause();
 		auto tips = Label::createWithBMFont("fonts/futura-48.fnt", "Success!");
@@ -109,8 +110,39 @@ public:
 		this->addChild(tips, 10);
 	}
 	
-	void GameClient::onClick(Ref* pSender, cocos2d::ui::Widget::TouchEventType type);
-
+	void onClick(Ref* pSender, cocos2d::ui::Widget::TouchEventType type);
+	void callback() {
+		for (int i = 0; i < action_doneList.size(); i++) {
+			Tank* tank=action_doneList.at(i);
+			tank->action_done = 1;
+		}
+		action_doneList.clear();
+	}
+	float init_x, init_y;
+	void updatePath2(float dt) {
+		for (int i = 0; i < m_tankList.size(); i++) {
+			auto nowTank = m_tankList.at(i);
+			if (nowTank->tank_kind == 1) {
+				int x = nowTank->getPositionX() / tileSize.width;
+				int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
+				int dir = rand() % 4;
+				switch (dir) {
+				case 0:
+					nowTank->MoveDown();
+					break;
+				case 1:
+					nowTank->MoveLeft();
+					break;
+				case 2:
+					nowTank->MoveUP();
+					break;
+				case 3:
+					nowTank->MoveRight();
+					break;
+				}
+			}
+		}
+	}
 };
 static Player player = { "name",0 };
 static std::vector<Player> rankings;

@@ -173,6 +173,6 @@ void Bullet::Blast()
 void Bullet::deleteObj(Sprite* obj)
 {
 	obj->removeFromParent();
-	this->removeFromParent();
+	//this->removeFromParent();
 }
 
