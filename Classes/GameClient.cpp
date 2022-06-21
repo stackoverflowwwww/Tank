@@ -915,8 +915,8 @@ void GameClient::moveOnPath(mapNode* tempNode, int tag_id, Tank* tank)
 // 绘制背景地图
 void GameClient::createBackGround()
 {
-	//auto map = TMXTiledMap::create("Chapter12/tank/map"+to_string((current_level-1)%3+1)+".tmx");
-	auto map = TMXTiledMap::create("Chapter12/tank/map1.tmx");
+	auto map = TMXTiledMap::create("Chapter12/tank/map"+to_string((current_level-1)%3+1)+".tmx");
+	//auto map = TMXTiledMap::create("Chapter12/tank/map1.tmx");
 	//map->setPosition(Vec2(22, 8));
 	map_layer = map->getLayer("back");
 	//map_layer->setPosition(Vec2(22, 8));

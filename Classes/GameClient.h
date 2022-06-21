@@ -50,7 +50,7 @@ private:
 	int set_convey = 0, can_convey = 0;
 	Vec2 convey_p;
 
-	int attend_enemy = 1, all_enemy = 5;//在场敌人数,所有敌人数
+	int attend_enemy = 3, all_enemy = 5;//在场敌人数,所有敌人数
 	int max_num = 5;//玩家生命
 	int play_rank = 1;//玩家坦克等级
 
