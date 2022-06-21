@@ -125,7 +125,7 @@ public:
 			if (nowTank->tank_kind == 1) {
 				int x = nowTank->getPositionX() / tileSize.width;
 				int y = (visibleSize.height - nowTank->getPositionY()) / tileSize.height;
-				int dir = rand() % 4;
+				/*int dir = rand() % 4;
 				switch (dir) {
 				case 0:
 					nowTank->MoveDown();
@@ -139,6 +139,44 @@ public:
 				case 3:
 					nowTank->MoveRight();
 					break;
+				}*/
+
+				if (max_num > 0) {
+					int t_x = m_tank->getPositionX() / tileSize.width;
+					int t_y = (visibleSize.height - m_tank->getPositionY()) / tileSize.height;
+					float p = 1.0*rand() / RAND_MAX;
+					if (p < 0.4) {
+						if (t_x-x>0) {
+							nowTank->MoveRight();
+						}
+						else {
+							nowTank->MoveLeft();
+						}
+					}
+					if (p >= 0.4 && p < 0.8) {
+						if (t_y - y > 0) {
+							nowTank->MoveDown();
+						}
+						else {
+							nowTank->MoveUP();
+						}
+					}
+					if (p >= 0.8 && p < 0.9) {
+						if (t_x - x > 0) {
+							nowTank->MoveLeft();
+						}
+						else {
+							nowTank->MoveRight();
+						}
+					}
+					if (p >= 0.9 && p < 1) {
+						if (t_y - y > 0) {
+							nowTank->MoveUP();
+						}
+						else {
+							nowTank->MoveDown();
+						}
+					}
 				}
 			}
 		}

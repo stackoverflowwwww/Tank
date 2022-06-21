@@ -216,6 +216,26 @@ void GameClient::update(float delta)
 					}
 					max_num--;
 				}
+				else {
+					if (all_enemy > attend_enemy && m_tankList.size() <= 4) {
+						int en = nowTank->tag_id - ENEMY_TANK_ID;
+						addEnemy(en);
+						//this->schedule(schedule_selector(GameClient::updatePath, this), 0.5, kRepeatForever, 0);
+						all_enemy--;
+						if (all_enemy == 0) {
+							gameOver();
+						}
+					}
+					else if (all_enemy == 0) {
+						gameOver();
+					}
+					else {
+						all_enemy--;
+						if (all_enemy == 0) {
+							gameOver();
+						}
+					}
+				}
 
 			}
 		}
